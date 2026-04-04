@@ -11,3 +11,6 @@ env/
 # IDEs and Editors
 .vscode/
 .idea/
+
+# Database files
+data/
