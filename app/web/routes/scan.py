@@ -1,4 +1,6 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
+
+from services.scan_service import ScanService
 
 router = APIRouter()
 
@@ -33,3 +35,15 @@ def getGrid(gridId: int):
         "imageFilePath": "/path/to/image.jpg",
         "audioFilePath": "/path/to/audio.mp3"
     }
+    
+@router.post("/start-scan")
+def start_scan(request: Request):
+    scan_service: ScanService = request.app.state.scan_service
+    scan_service.start_scan()
+    return {"status": "started"}
+    
+@router.post("/stop-scan")
+def stop_scan(request: Request):
+    scan_service: ScanService = request.app.state.scan_service
+    scan_service.stop_scan()
+    return {"status": "stopped"}
