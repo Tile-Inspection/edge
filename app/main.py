@@ -20,4 +20,7 @@ if __name__ == "__main__":
     # Give Uvicorn a moment to initialize before potentially blocking the main thread
     time.sleep(1)
     
-    controller.run()
+    while True:
+        if controller.is_running:
+            controller.step()
+        time.sleep(1)

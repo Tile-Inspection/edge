@@ -1,8 +1,21 @@
+from hardware.motion import Motion
+from hardware.sensors import Sensors
+from hardware.solenoid import Solenoid
+from hardware.camera import Camera
+from hardware.microphone import Microphone
+from navigation.navigator import Navigator
+
+
 class ScanController:
-    def __init__(self):
-        self.init = False
+    def __init__(self):        
+        self.motion = Motion()
+        self.sensors = Sensors()
+        self.solenoid = Solenoid()
+        self.camera = Camera()
+        self.mic = Microphone()
+        self.navigator = Navigator(self.motion)
+        
         self.is_running = False
-        print("ScanController is stopping...")
 
     def start(self):
         self.is_running = True
@@ -11,12 +24,19 @@ class ScanController:
     def stop(self):
         self.is_running = False
         print("ScanController is stopped...")
+        
+    def step(self):
+        if self.sensors.is_wall_ahead():
+            self.navigator.handle_wall()
+            return
 
-    def run(self):
-        if (not self.init):
-            self.init = True
-            print("ScanController is initiated...")
-        while True:
-            if self.is_running:
-                # Perform scanning operations here
-                pass
+        self.motion.move_forward_tile()
+        self.inspect()
+        
+    def inspect(self):
+        self.solenoid.tap()
+        audio = self.mic.record()
+        image = self.camera.capture()
+
+        print(f"Processing {audio}, {image}")
+        
