@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edge Tile Inspection Robot</title>
+</head>
+
+<body>
+    <h1>Edge Tile Inspection Robot</h1>
+    <p>Welcome to the Edge Tile Inspection Robot!</p>
+
+    <div style="margin-top: 20px;">
+        <button onclick="startScan()">Start Scan</button>
+        <button onclick="stopScan()">Stop Scan</button>
+    </div>
+    <p id="status-message" style="font-weight: bold;"></p>
+
+    <script>
+        const statusMessage = document.getElementById('status-message');
+
+        async function startScan() {
+            try {
+                const response = await fetch('/start-scan', { method: 'POST' });
+                const data = await response.json();
+                statusMessage.textContent = 'Status: ' + data.status;
+            } catch (error) {
+                statusMessage.textContent = 'Error starting scan.';
+                console.error('Error:', error);
+            }
+        }
+
+        async function stopScan() {
+            try {
+                const response = await fetch('/stop-scan', { method: 'POST' });
+                const data = await response.json();
+                statusMessage.textContent = 'Status: ' + data.status;
+            } catch (error) {
+                statusMessage.textContent = 'Error stopping scan.';
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+
+</html>
