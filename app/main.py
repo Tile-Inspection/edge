@@ -11,7 +11,7 @@ scan_service = ScanService(controller)
 web_app.state.scan_service = scan_service
 
 def start_web():
-    uvicorn.run("web.app:app", host="127.0.0.1", port=8000)
+    uvicorn.run("web.app:app", host="0.0.0.0", port=8000)
 
 if __name__ == "__main__":
     # Start web server in background
