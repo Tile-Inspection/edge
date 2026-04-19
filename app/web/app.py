@@ -9,6 +9,7 @@ app = FastAPI(title="Edge Tile Inspection Robot API")
 
 origins = [
     "http://localhost:3000",
+    "*",
 ]
 
 app.add_middleware(
