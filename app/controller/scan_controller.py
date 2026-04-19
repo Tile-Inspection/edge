@@ -3,8 +3,8 @@ from hardware.sensors import Sensors
 from hardware.solenoid import Solenoid
 from hardware.camera import Camera
 from hardware.microphone import Microphone
+from hardware.serial import SerialCommunicator
 from navigation.navigator import Navigator
-
 
 class ScanController:
     def __init__(self):        
@@ -14,6 +14,8 @@ class ScanController:
         self.camera = Camera()
         self.mic = Microphone()
         self.navigator = Navigator(self.motion)
+
+        self.serial_communicator = SerialCommunicator()
         
         self.is_running = False
 

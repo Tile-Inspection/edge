@@ -2,14 +2,19 @@ import serial
 
 class SerialCommunicator:
     def __init__(self):
-        self.ser = serial.Serial(
-            port='/dev/serial0',
-            baudrate=74880,
-            parity=serial.PARITY_NONE,
-            stopbits=serial.STOPBITS_ONE,
-            bytesize=serial.EIGHTBITS,
-            timeout=1
-        )
+        try:
+            self.ser = serial.Serial(
+                port='/dev/serial0',
+                baudrate=74880,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                bytesize=serial.EIGHTBITS,
+                timeout=1
+            )
+            print("Serial port initialized successfully.")
+        except serial.SerialException as e:
+            print(f"Error initializing serial port: {e}")
+            self.ser = None
     
     def send_command(self, command: str):
         """Sends a command string to the serial device."""
@@ -21,8 +26,11 @@ class SerialCommunicator:
 
     def close(self):
         """Closes the serial port."""
-        if self.ser.is_open:
-            self.ser.close()
-            print("Serial port closed.")
-        else:
-            print("Serial port is already closed.")
+        try:
+            if self.ser.is_open:
+                self.ser.close()
+                print("Serial port closed.")
+            else:
+                print("Serial port is already closed.")
+        except:
+            print("Error closing serial port")

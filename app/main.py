@@ -14,13 +14,19 @@ def start_web():
     uvicorn.run("web.app:app", host="0.0.0.0", port=8000)
 
 if __name__ == "__main__":
-    # Start web server in background
-    Thread(target=start_web, daemon=True).start()
-    
-    # Give Uvicorn a moment to initialize before potentially blocking the main thread
-    time.sleep(1)
-    
-    while True:
-        if controller.is_running:
-            controller.step()
+    try:
+        # Start web server in background
+        Thread(target=start_web, daemon=True).start()
+        
+        # Give Uvicorn a moment to initialize before potentially blocking the main thread
         time.sleep(1)
+        
+        while True:
+            if controller.is_running:
+                controller.step()
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("Shutting down...")
+    finally:
+        controller.serial_communicator.close()
+    
