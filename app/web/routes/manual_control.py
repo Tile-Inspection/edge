@@ -10,23 +10,23 @@ class ControlRequest(BaseModel):
 router = APIRouter()
 
 @router.post("/control")
-def control(request: ControlRequest):
+def control(request: Request, body: ControlRequest):
     scan_service: ScanService = request.app.state.scan_service
     serial_communicator = scan_service.controller.serial_communicator
 
-    if request.action == "move":
-        if request.direction not in {"forward", "backward", "left", "right"}:
+    if body.action == "move":
+        if body.direction not in {"forward", "backward", "left", "right"}:
             raise HTTPException(status_code=400, detail="Invalid direction for move action")
         
-        if request.direction == "forward":
+        if body.direction == "forward":
             serial_communicator.send_command("F")
-        elif request.direction == "backward":
+        elif body.direction == "backward":
             serial_communicator.send_command("B")
-        elif request.direction == "left":
+        elif body.direction == "left":
             serial_communicator.send_command("L")
-        elif request.direction == "right":
+        elif body.direction == "right":
             serial_communicator.send_command("R")
-    elif request.action == "stop":
+    elif body.action == "stop":
         serial_communicator.send_command("S")
     else:
         raise HTTPException(status_code=400, detail="Invalid action")
