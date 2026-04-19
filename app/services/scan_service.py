@@ -6,19 +6,14 @@ from db.database import SessionLocal
 class ScanService:
     def __init__(self, controller: ScanController):
         self.controller = controller
+        self.current_scan_id = None
 
-    def start_scan(self):
+    def start_scan(self, scan_id: int):
         if not self.controller.is_running:
-            # Create a new scan record in the database
-            db = SessionLocal()
-            try:
-                scan = create_scan(db, name="New Scan")
-                print(f"Scan created with ID: {scan.id}")
-            finally:
-                db.close()
-            
+            self.current_scan_id = scan_id
             self.controller.start()
 
     def stop_scan(self):
         if self.controller.is_running:
             self.controller.stop()
+            self.current_scan_id = None

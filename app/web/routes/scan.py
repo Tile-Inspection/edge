@@ -1,10 +1,27 @@
 from fastapi import APIRouter, Request, HTTPException
+from pydantic import BaseModel
 
 from services.scan_service import ScanService
 from db.database import get_db
-from db.crud import get_all_scans, get_scan_results, get_result
+from db.crud import get_all_scans, get_scan_results, get_result, create_scan
+
+class CreateScanRequest(BaseModel):
+    name: str
+    
+class StartScanRequest(BaseModel):
+    scanId: int
 
 router = APIRouter()
+
+@router.get("/status")
+def getStatus(request: Request):
+    """Fetches the current status of the scanning process."""
+    scan_service: ScanService = request.app.state.scan_service
+    return {
+        "is_running": scan_service.controller.is_running,
+        "current_scan_id": scan_service.current_scan_id
+    }
+
 
 @router.get("/scans")
 def getScans():
@@ -54,14 +71,21 @@ def getGrid(gridId: int):
             "audioFilePath": result.audio_file_path,
         }
     
+@router.post("/create-scan")
+def createScan(request: CreateScanRequest):
+    """Creates a new scan session."""
+    with get_db() as db:
+        scan = create_scan(db, request.name)
+        return {"id": scan.id, "name": scan.name, "date": scan.time.isoformat()}
+    
 @router.post("/start-scan")
-def start_scan(request: Request):
+def startScan(request: Request, body: StartScanRequest):
     scan_service: ScanService = request.app.state.scan_service
-    scan_service.start_scan()
+    scan_service.start_scan(body.scanId)
     return {"status": "started"}
     
 @router.post("/stop-scan")
-def stop_scan(request: Request):
+def stopScan(request: Request):
     scan_service: ScanService = request.app.state.scan_service
     scan_service.stop_scan()
     return {"status": "stopped"}
