@@ -19,7 +19,7 @@ class Camera:
     
     def capture(self):
         if PICAM_AVAILABLE:
-            filename = "image.jpg"
+            filename = "/home/admin/Documents/GitHub/edge/app/web/static/image.jpg"
             self.picam2.capture_file(filename)
             return filename
         else:

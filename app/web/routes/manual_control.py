@@ -31,3 +31,9 @@ def control(request: Request, body: ControlRequest):
     else:
         raise HTTPException(status_code=400, detail="Invalid action")
     return {"status": "success"}
+
+@router.post("/capture")
+def capture(request: Request):
+    scan_service: ScanService = request.app.state.scan_service
+    filename = scan_service.controller.camera.capture()
+    return {"filename": filename}
