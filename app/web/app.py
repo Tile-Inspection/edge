@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from web.routes import scan
 from web.routes import health
+from web.routes import manual_control
 
 app = FastAPI(title="Edge Tile Inspection Robot API")
 
@@ -21,5 +22,6 @@ app.add_middleware(
 # include API routers
 app.include_router(health.router)
 app.include_router(scan.router)
+app.include_router(manual_control.router)
 
 app.mount("/", StaticFiles(directory="web/static", html=True), name="static")
