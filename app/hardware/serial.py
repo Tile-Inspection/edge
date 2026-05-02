@@ -1,4 +1,6 @@
 import serial
+import threading
+import time
 
 class SerialCommunicator:
     def __init__(self):
@@ -15,19 +17,45 @@ class SerialCommunicator:
         except serial.SerialException as e:
             print(f"Error initializing serial port: {e}")
             self.ser = None
+        
+        self.current_command = "S"  # Default to stop
+        self.sending_thread = None
+        self.running = False
+        self.start_sending_loop()
     
-    def send_command(self, command: str):
-        """Sends a command string to the serial device."""
-        if self.ser.is_open:
-            self.ser.write(command.encode())
-            print(f"Sent command: {command}")
+    def start_sending_loop(self):
+        """Starts a background thread that sends the current command at 10Hz."""
+        if self.ser and not self.running:
+            self.running = True
+            self.sending_thread = threading.Thread(target=self._send_loop, daemon=True)
+            self.sending_thread.start()
+    
+    def _send_loop(self):
+        """Internal loop that sends the current command every 100ms."""
+        while self.running:
+            self._send_current_command()
+            time.sleep(0.1)  # 10Hz = 0.1 seconds
+    
+    def _send_current_command(self):
+        """Sends the current command to the serial device."""
+        if self.ser and self.ser.is_open:
+            self.ser.write(self.current_command.encode())
+            print(f"Sent command: {self.current_command}")
         else:
             print("Serial port is not open. Cannot send command.")
-
+    
+    def send_command(self, command: str):
+        """Updates the current command to be sent continuously."""
+        self.current_command = command
+        print(f"Updated current command to: {command}")
+    
     def close(self):
-        """Closes the serial port."""
+        """Closes the serial port and stops the sending loop."""
+        self.running = False
+        if self.sending_thread:
+            self.sending_thread.join(timeout=1)
         try:
-            if self.ser.is_open:
+            if self.ser and self.ser.is_open:
                 self.ser.close()
                 print("Serial port closed.")
             else:
