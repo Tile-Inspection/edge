@@ -8,6 +8,10 @@ class ControlRequest(BaseModel):
     direction: str | None = None
     speed: str | None = None
 
+class VelocityRequest(BaseModel):
+    linear: float  # Linear velocity (m/s) - positive = forward, negative = backward
+    angular: float  # Angular velocity (rad/s) - positive = turn left, negative = turn right
+
 router = APIRouter()
 
 @router.post("/control")
@@ -20,15 +24,15 @@ def control(request: Request, body: ControlRequest):
             raise HTTPException(status_code=400, detail="Invalid direction for move action")
         
         if body.direction == "forward":
-            serial_communicator.send_command("F")
+            serial_communicator.send_velocity(100, 0)
         elif body.direction == "backward":
-            serial_communicator.send_command("B")
+            serial_communicator.send_velocity(-100, 0)
         elif body.direction == "left":
-            serial_communicator.send_command("L")
+            serial_communicator.send_velocity(0, 50)
         elif body.direction == "right":
-            serial_communicator.send_command("R")
+            serial_communicator.send_velocity(0, -50)
     elif body.action == "stop":
-        serial_communicator.send_command("S")
+        serial_communicator.send_velocity(0, 0)
     elif body.action == "speed":
         if body.speed not in {"100", "150", "200"}:
             raise HTTPException(status_code=400, detail="Invalid speed")
@@ -48,3 +52,10 @@ def capture(request: Request):
     scan_service: ScanService = request.app.state.scan_service
     filename = scan_service.controller.camera.capture()
     return {"filename": filename}
+
+@router.post("/velocity")
+def set_velocity(request: Request, command: VelocityRequest):
+    scan_service: ScanService = request.app.state.scan_service
+    serial_communicator = scan_service.controller.serial_communicator
+    serial_communicator.send_velocity(command.linear, command.angular)
+    return {"status": "success", "linear": command.linear, "angular": command.angular}

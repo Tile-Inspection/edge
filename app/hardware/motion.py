@@ -6,25 +6,25 @@ class Motion:
     
     def move_forward_tile(self):
         if self.serial:
-            self.serial.send_command("F")
+            self.serial.send_velocity(100, 0)
         print("Moving forward 1 tile")
         # Assuming tile movement takes some time, but for now, just set command
         # In a real implementation, you might need to time this or wait for feedback
     
     def turn_left(self):
         if self.serial:
-            self.serial.send_command("L")
+            self.serial.send_velocity(0, 50)
         print("Turning LEFT 90°")
         # Simulate turn time
         time.sleep(0.5)  # Adjust based on actual turn time
         if self.serial:
-            self.serial.send_command("S")  # Stop after turn
+            self.serial.send_velocity(0, 0)  # Stop after turn
     
     def turn_right(self):
         if self.serial:
-            self.serial.send_command("R")
+            self.serial.send_velocity(0, -50)
         print("Turning RIGHT 90°")
         # Simulate turn time
         time.sleep(0.5)  # Adjust based on actual turn time
         if self.serial:
-            self.serial.send_command("S")  # Stop after turn
+            self.serial.send_velocity(0, 0)  # Stop after turn

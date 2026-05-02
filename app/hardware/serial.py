@@ -18,10 +18,16 @@ class SerialCommunicator:
             print(f"Error initializing serial port: {e}")
             self.ser = None
         
-        self.current_command = "S"  # Default to stop
+        self.current_command = self._format_velocity_command(0, 0)  # Default to stop
         self.sending_thread = None
         self.running = False
         self.start_sending_loop()
+    
+    @staticmethod
+    def _format_velocity_command(linear: float, angular: float) -> bytes:
+        """Format a velocity command as <v,w>."""
+        payload = f"{linear},{angular}"
+        return b"<" + payload.encode() + b">"
     
     def start_sending_loop(self):
         """Starts a background thread that sends the current command at 10Hz."""
@@ -39,15 +45,35 @@ class SerialCommunicator:
     def _send_current_command(self):
         """Sends the current command to the serial device."""
         if self.ser and self.ser.is_open:
-            self.ser.write(self.current_command.encode())
-            print(f"Sent command: {self.current_command}")
+            if isinstance(self.current_command, str):
+                payload = self.current_command.encode()
+            else:
+                payload = self.current_command
+            self.ser.write(payload)
+            print(f"Sent command: {payload}")
         else:
             print("Serial port is not open. Cannot send command.")
     
+    def send_velocity(self, linear: float, angular: float):
+        """Updates the current command using the new velocity protocol."""
+        self.current_command = self._format_velocity_command(linear, angular)
+        print(f"Updated current velocity command to: {self.current_command}")
+    
     def send_command(self, command: str):
-        """Updates the current command to be sent continuously."""
-        self.current_command = command
-        print(f"Updated current command to: {command}")
+        """Updates the current command for legacy or raw serialized commands."""
+        legacy_map = {
+            "F": (100, 0),
+            "B": (-100, 0),
+            "L": (0, 50),
+            "R": (0, -50),
+            "S": (0, 0),
+        }
+        if command in legacy_map:
+            linear, angular = legacy_map[command]
+            self.send_velocity(linear, angular)
+        else:
+            self.current_command = command.encode() if isinstance(command, str) else command
+            print(f"Updated current command to raw payload: {self.current_command}")
     
     def close(self):
         """Closes the serial port and stops the sending loop."""
