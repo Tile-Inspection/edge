@@ -9,13 +9,16 @@ import time
 class Camera:
     def __init__(self):
         self.picam2 = None
-        if PICAM_AVAILABLE:
-            self.picam2 = Picamera2()
-            self.picam2.start()
-            time.sleep(2)
-            print("Camera initialized successfully.")
-        else:
-            print("Camera not available.")
+        try:
+            if PICAM_AVAILABLE:
+                self.picam2 = Picamera2()
+                self.picam2.start()
+                time.sleep(2)
+                print("Camera initialized successfully.")
+            else:
+                print("Picamera2 library not available. Camera functionality will be disabled.")
+        except Exception as e:
+            print("Couldn't initialize camera.")
     
     def capture(self):
         if PICAM_AVAILABLE:

@@ -6,6 +6,7 @@ from services.scan_service import ScanService
 class ControlRequest(BaseModel):
     action: str
     direction: str | None = None
+    speed: str | None = None
 
 router = APIRouter()
 
@@ -28,6 +29,16 @@ def control(request: Request, body: ControlRequest):
             serial_communicator.send_command("R")
     elif body.action == "stop":
         serial_communicator.send_command("S")
+    elif body.action == "speed":
+        if body.speed not in {"100", "150", "200"}:
+            raise HTTPException(status_code=400, detail="Invalid speed")
+        
+        if body.speed == "100":
+            serial_communicator.send_command("Z")
+        elif body.speed == "150":
+            serial_communicator.send_command("X")
+        elif body.speed == "200":
+            serial_communicator.send_command("C")
     else:
         raise HTTPException(status_code=400, detail="Invalid action")
     return {"status": "success"}
