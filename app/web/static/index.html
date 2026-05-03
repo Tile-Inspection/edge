@@ -5,29 +5,237 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edge Tile Inspection Robot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .section {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:active {
+            background-color: #3d8b40;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .keyboard-info {
+            background-color: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Edge Tile Inspection Robot</h1>
-    <p>Welcome to the Edge Tile Inspection Robot!</p>
+    <h1>Edge Tile Inspection Robot - Manual Control</h1>
 
-    <div style="margin-top: 20px;">
-        <button onclick="startScan()">Start Scan</button>
-        <button onclick="stopScan()">Stop Scan</button>
+    <div class="container">
+        <div class="section">
+            <h2>Manual Control</h2>
+
+            <div class="keyboard-info">
+                <strong>Keyboard Controls:</strong><br>
+                W/↑ = Forward | S/↓ = Backward | A/← = Turn Left | D/→ = Turn Right | Space = Stop
+            </div>
+
+            <div>
+                <button onclick="moveForward()">▲ Forward (W/↑)</button>
+                <button onclick="moveBackward()">▼ Backward (S/↓)</button>
+                <button onclick="turnLeft()">◄ Left (A/←)</button>
+                <button onclick="turnRight()">► Right (D/→)</button>
+                <button onclick="stop()">⏹ Stop (Space)</button>
+            </div>
+
+            <div class="status">
+                <strong>Current Velocity:</strong><br>
+                Linear: <span id="linear-value">0</span> m/s<br>
+                Angular: <span id="angular-value">0</span> rad/s
+            </div>
+
+            <div>
+                <label>Scan ID:</label><br>
+                <input type="number" id="scan-id-input" value="1" min="1">
+                <button onclick="startScan()">Start Scan</button>
+                <button onclick="stopScan()">Stop Scan</button>
+                <button onclick="capture()">Capture Image</button>
+            </div>
+
+            <div class="status">
+                <strong>Scan Status:</strong><br>
+                Is Running: <span id="is-running">false</span><br>
+                Current Scan ID: <span id="current-scan-id">-</span>
+            </div>
+
+            <p id="status-message" style="font-weight: bold; color: #2196F3;"></p>
+        </div>
+
+        <div class="section">
+            <h2>Direct Velocity Control</h2>
+            <div>
+                <label>Linear Velocity (m/s):</label><br>
+                <input type="number" id="linear-input" value="0" step="0.1" min="-1" max="1">
+                <br><br>
+                <label>Angular Velocity (rad/s):</label><br>
+                <input type="number" id="angular-input" value="0" step="1" min="-50" max="50">
+                <br><br>
+                <button onclick="sendCustomVelocity()">Send Velocity</button>
+            </div>
+        </div>
     </div>
-    <p id="status-message" style="font-weight: bold;"></p>
 
     <script>
         const statusMessage = document.getElementById('status-message');
+        const linearDisplay = document.getElementById('linear-value');
+        const angularDisplay = document.getElementById('angular-value');
+        const linearInput = document.getElementById('linear-input');
+        const angularInput = document.getElementById('angular-input');
+        const scanIdInput = document.getElementById('scan-id-input');
+        const isRunningDisplay = document.getElementById('is-running');
+        const currentScanIdDisplay = document.getElementById('current-scan-id');
+
+        // Track currently held keys
+        const keysPressed = {};
+
+        // Keyboard event listeners
+        window.addEventListener('keydown', (event) => {
+            keysPressed[event.key.toLowerCase()] = true;
+            handleKeyboard();
+        });
+
+        window.addEventListener('keyup', (event) => {
+            keysPressed[event.key.toLowerCase()] = false;
+            handleKeyboard();
+        });
+
+        function handleKeyboard() {
+            const w = keysPressed['w'] || keysPressed['arrowup'];
+            const s = keysPressed['s'] || keysPressed['arrowdown'];
+            const a = keysPressed['a'] || keysPressed['arrowleft'];
+            const d = keysPressed['d'] || keysPressed['arrowright'];
+            const space = keysPressed[' '];
+
+            if (space) {
+                stop();
+            } else if (w) {
+                moveForward();
+            } else if (s) {
+                moveBackward();
+            } else if (a) {
+                turnLeft();
+            } else if (d) {
+                turnRight();
+            }
+        }
+
+        async function sendVelocity(linear, angular) {
+            try {
+                const response = await fetch('/velocity', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ linear, angular })
+                });
+                const data = await response.json();
+                linearDisplay.textContent = data.linear;
+                angularDisplay.textContent = data.angular;
+                linearInput.value = data.linear;
+                angularInput.value = data.angular;
+            } catch (error) {
+                statusMessage.textContent = 'Error sending velocity.';
+                console.error('Error:', error);
+            }
+        }
+
+        function moveForward() {
+            sendVelocity(1, 0);
+        }
+
+        function moveBackward() {
+            sendVelocity(-1, 0);
+        }
+
+        function turnLeft() {
+            sendVelocity(0, 1);
+        }
+
+        function turnRight() {
+            sendVelocity(0, -1);
+        }
+
+        function stop() {
+            sendVelocity(0, 0);
+        }
+
+        async function sendCustomVelocity() {
+            const linear = parseFloat(linearInput.value) || 0;
+            const angular = parseFloat(angularInput.value) || 0;
+            sendVelocity(linear, angular);
+        }
 
         async function startScan() {
             try {
-                const response = await fetch('/start-scan', { method: 'POST' });
+                const scanId = parseInt(scanIdInput.value) || 1;
+                const response = await fetch('/start-scan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ scanId })
+                });
                 const data = await response.json();
                 statusMessage.textContent = 'Status: ' + data.status;
+                updateScanStatus();
             } catch (error) {
                 statusMessage.textContent = 'Error starting scan.';
                 console.error('Error:', error);
+            }
+        }
+
+        async function updateScanStatus() {
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+                isRunningDisplay.textContent = data.is_running ? 'true' : 'false';
+                currentScanIdDisplay.textContent = data.current_scan_id !== null ? data.current_scan_id : '-';
+            } catch (error) {
+                console.error('Error fetching status:', error);
             }
         }
 
@@ -36,11 +244,29 @@
                 const response = await fetch('/stop-scan', { method: 'POST' });
                 const data = await response.json();
                 statusMessage.textContent = 'Status: ' + data.status;
+                updateScanStatus();
             } catch (error) {
                 statusMessage.textContent = 'Error stopping scan.';
                 console.error('Error:', error);
             }
         }
+
+        async function capture() {
+            try {
+                const response = await fetch('/capture', { method: 'POST' });
+                const data = await response.json();
+                statusMessage.textContent = 'Captured: ' + data.filename;
+            } catch (error) {
+                statusMessage.textContent = 'Error capturing image.';
+                console.error('Error:', error);
+            }
+        }
+
+        // Initialize display
+        linearDisplay.textContent = '0';
+        angularDisplay.textContent = '0';
+        updateScanStatus();
+        setInterval(updateScanStatus, 1000);  // Update scan status every second
     </script>
 </body>
 
