@@ -62,10 +62,10 @@ class SerialCommunicator:
     def send_command(self, command: str):
         """Updates the current command for legacy or raw serialized commands."""
         legacy_map = {
-            "F": (100, 0),
-            "B": (-100, 0),
-            "L": (0, 50),
-            "R": (0, -50),
+            "F": (1, 0),
+            "B": (-1, 0),
+            "L": (0, 1),
+            "R": (0, -1),
             "S": (0, 0),
         }
         if command in legacy_map:
