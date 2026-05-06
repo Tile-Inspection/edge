@@ -18,15 +18,15 @@ class SerialCommunicator:
             print(f"Error initializing serial port: {e}")
             self.ser = None
         
+        self.battery = 0.0
         self.current_command = self._format_velocity_command(0, 0)  # Default to stop
         self.sending_thread = None
         self.running = False
         self.start_sending_loop()
     
-    @staticmethod
-    def _format_velocity_command(linear: float, angular: float) -> bytes:
-        """Format a velocity command as <v,w>."""
-        payload = f"{linear},{angular}"
+    def _format_velocity_command(self, linear: float, angular: float) -> bytes:
+        """Format a velocity command as <v,w,b>."""
+        payload = f"{linear},{angular},{self.battery}"
         return b"<" + payload.encode() + b">"
     
     def start_sending_loop(self):
@@ -58,6 +58,11 @@ class SerialCommunicator:
         """Updates the current command using the new velocity protocol."""
         self.current_command = self._format_velocity_command(linear, angular)
         print(f"Updated current velocity command to: {self.current_command}")
+    
+    def send_battery(self, battery: float):
+        """Updates the battery level."""
+        self.battery = battery
+        print(f"Updated battery level to: {self.battery}")
     
     def send_command(self, command: str):
         """Updates the current command for legacy or raw serialized commands."""
