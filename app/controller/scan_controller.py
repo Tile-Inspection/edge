@@ -5,7 +5,7 @@ from hardware.camera import Camera
 from hardware.microphone import Microphone
 from hardware.serial import SerialCommunicator
 from navigator.navigator import Navigator
-from navigation.analyze import analyze, calculate_error
+from navigation.analyze import analyze, calculate_error, smooth_line
 
 class ScanController:
     def __init__(self):        
@@ -27,6 +27,10 @@ class ScanController:
         self.kd = 0.005
         self.prev_error = 0
         self.integral = 0
+        
+        self.prev_bottom = None
+        self.prev_left = None
+        self.prev_right = None
 
     def start_forward_path(self):
         """Initiates a simple forward path using the camera feed."""
@@ -74,13 +78,18 @@ class ScanController:
             
         _, _, left_line, right_line = analyze(frame)
         
+        best_left_line = smooth_line(self.prev_left, left_line)
+        best_right_line = smooth_line(self.prev_right, right_line)
+        
+        # Update state
+        self.prev_left = best_left_line
+        self.prev_right = best_right_line
+        
         # Default dimensions for the camera capture, adjust as necessary
-        X_DIM = 640
-        Y_DIM = 480
+        X_DIM = 240
+        Y_DIM = 320
         
-        error, _, _ = calculate_error(left_line, right_line, image_width=X_DIM, image_height=Y_DIM)
-        
-        print("Error: ", error)
+        error, _, _ = calculate_error(best_left_line, best_right_line, image_width=X_DIM, image_height=Y_DIM)
         
         # PID calculation
         self.integral += error

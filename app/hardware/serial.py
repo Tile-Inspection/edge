@@ -50,9 +50,6 @@ class SerialCommunicator:
             else:
                 payload = self.current_command
             self.ser.write(payload)
-            print(f"Sent command: {payload}")
-        else:
-            print("Serial port is not open. Cannot send command.")
     
     def send_velocity(self, linear: float, angular: float):
         """Updates the current command using the new velocity protocol."""
