@@ -28,6 +28,14 @@ class Camera:
         else:
             print("Picamera2 not available")
             
+    def capture_array(self):
+        """Captures an image directly to memory as a numpy array."""
+        if PICAM_AVAILABLE:
+            return self.picam2.capture_array()
+        else:
+            print("Picamera2 not available")
+            return None
+
     def close(self):
         if PICAM_AVAILABLE:
             self.picam2.stop()
