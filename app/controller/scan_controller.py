@@ -73,10 +73,10 @@ class ScanController:
         if frame is None:
             return
         
-        _, _, left_line, right_line = analyze(frame, x_dim=X_DIM, y_dim=Y_DIM)
+        _, _, left_line, right_line = analyze(frame, X_DIM, Y_DIM)
         
-        best_left_line = smooth_line(self.prev_left, left_line)
-        best_right_line = smooth_line(self.prev_right, right_line)
+        best_left_line = smooth_line(self.prev_left, left_line, X_DIM, Y_DIM)
+        best_right_line = smooth_line(self.prev_right, right_line, X_DIM, Y_DIM)
         
         # Update state
         self.prev_left = best_left_line
