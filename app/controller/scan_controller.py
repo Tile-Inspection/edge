@@ -1,3 +1,4 @@
+from controller.pid import PID
 from hardware.motion import Motion
 from hardware.sensors import Sensors
 from hardware.solenoid import Solenoid
@@ -18,15 +19,10 @@ class ScanController:
         self.mic = Microphone()
         self.navigator = Navigator(self.motion)
 
+        self.pid = PID()
+
         self.is_running = False
-        self.is_following_path = False
-        
-        # PID parameters
-        self.kp = 0.01
-        self.ki = 0.001
-        self.kd = 0.005
-        self.prev_error = 0
-        self.integral = 0
+        self.is_following_path = False        
         
         self.prev_bottom = None
         self.prev_left = None
@@ -75,7 +71,7 @@ class ScanController:
         frame = self.camera.capture_array()
         if frame is None:
             return
-            
+        
         _, _, left_line, right_line = analyze(frame)
         
         best_left_line = smooth_line(self.prev_left, left_line)
@@ -91,15 +87,7 @@ class ScanController:
         
         error, _, _ = calculate_error(best_left_line, best_right_line, image_width=X_DIM, image_height=Y_DIM)
         
-        # PID calculation
-        self.integral += error
-        derivative = error - self.prev_error
-        angular_velocity = (self.kp * error) + (self.ki * self.integral) + (self.kd * derivative)
-        
-        # Clamp angular velocity to [-1.0, 1.0] bounds
-        angular_velocity = max(-1.0, min(1.0, angular_velocity))
-        
-        self.prev_error = error
+        angular_velocity = self.pid.compute(error)
         
         self.serial_communicator.send_velocity(0.5, angular_velocity) # 0.5 is the base linear speed
         
