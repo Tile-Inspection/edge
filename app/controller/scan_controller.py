@@ -7,9 +7,10 @@ from hardware.microphone import Microphone
 from hardware.serial import SerialCommunicator
 from navigator.navigator import Navigator
 from navigation.analyze import analyze, calculate_error, smooth_line
+from constants import X_DIM, Y_DIM
 
 class ScanController:
-    def __init__(self):        
+    def __init__(self):
         self.serial_communicator = SerialCommunicator()
         
         self.motion = Motion(self.serial_communicator)
@@ -72,7 +73,7 @@ class ScanController:
         if frame is None:
             return
         
-        _, _, left_line, right_line = analyze(frame)
+        _, _, left_line, right_line = analyze(frame, x_dim=X_DIM, y_dim=Y_DIM)
         
         best_left_line = smooth_line(self.prev_left, left_line)
         best_right_line = smooth_line(self.prev_right, right_line)
@@ -80,10 +81,6 @@ class ScanController:
         # Update state
         self.prev_left = best_left_line
         self.prev_right = best_right_line
-        
-        # Default dimensions for the camera capture, adjust as necessary
-        X_DIM = 240
-        Y_DIM = 320
         
         error, _, _ = calculate_error(best_left_line, best_right_line, image_width=X_DIM, image_height=Y_DIM)
         
