@@ -121,6 +121,19 @@
                 <button onclick="sendCustomVelocity()">Send Velocity</button>
             </div>
         </div>
+
+        <div class="section">
+            <h2>Hardware Controls</h2>
+            <div>
+                <button onclick="triggerSolenoid()">Trigger Solenoid</button>
+            </div>
+            <br>
+            <div>
+                <label>Battery Level (6.0 - 8.4V):</label><br>
+                <input type="number" id="battery-input" value="7.4" step="0.1" min="6.0" max="8.4">
+                <button onclick="sendBattery()">Set Battery</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -258,6 +271,33 @@
                 statusMessage.textContent = 'Captured: ' + data.filename;
             } catch (error) {
                 statusMessage.textContent = 'Error capturing image.';
+                console.error('Error:', error);
+            }
+        }
+
+        async function triggerSolenoid() {
+            try {
+                const response = await fetch('/solenoid', { method: 'POST' });
+                const data = await response.json();
+                statusMessage.textContent = 'Status: ' + data.message;
+            } catch (error) {
+                statusMessage.textContent = 'Error triggering solenoid.';
+                console.error('Error:', error);
+            }
+        }
+
+        async function sendBattery() {
+            try {
+                const battery = parseFloat(document.getElementById('battery-input').value) || 7.4;
+                const response = await fetch('/battery', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ battery })
+                });
+                const data = await response.json();
+                statusMessage.textContent = 'Battery set to: ' + data.battery + 'V';
+            } catch (error) {
+                statusMessage.textContent = 'Error setting battery.';
                 console.error('Error:', error);
             }
         }

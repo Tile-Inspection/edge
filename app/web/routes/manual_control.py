@@ -59,3 +59,10 @@ def set_battery(request: Request, command: BatteryRequest):
     serial_communicator = scan_service.controller.serial_communicator
     serial_communicator.send_battery(command.battery)
     return {"status": "success", "battery": command.battery}
+
+@router.post("/solenoid")
+def set_solenoid(request: Request):
+    scan_service: ScanService = request.app.state.scan_service
+    solenoid = scan_service.controller.solenoid
+    solenoid.tap()
+    return {"status": "success", "message": "Solenoid activated"}
