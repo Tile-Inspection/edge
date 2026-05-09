@@ -64,7 +64,7 @@ def set_battery(request: Request, command: BatteryRequest):
 def get_battery(request: Request):
     scan_service: ScanService = request.app.state.scan_service
     adc = scan_service.controller.adc
-    battery_voltage = adc.read_voltage()
+    battery_voltage = adc.read_voltage() * 147 / 47
     return {"status": "success", "battery": battery_voltage}
 
 @router.post("/solenoid")
