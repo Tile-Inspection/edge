@@ -73,3 +73,10 @@ def set_solenoid(request: Request):
     solenoid = scan_service.controller.solenoid
     solenoid.tap()
     return {"status": "success", "message": "Solenoid activated"}
+
+@router.post("/spray")
+def set_spray(request: Request):
+    scan_service: ScanService = request.app.state.scan_service
+    sprayer = scan_service.controller.sprayer
+    sprayer.spray()
+    return {"status": "success", "message": "Spray activated"}

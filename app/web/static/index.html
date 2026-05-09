@@ -126,6 +126,7 @@
             <h2>Hardware Controls</h2>
             <div>
                 <button onclick="triggerSolenoid()">Trigger Solenoid</button>
+                <button onclick="triggerSprayer()">Trigger Sprayer</button>
             </div>
             <br>
             <div>
@@ -287,6 +288,17 @@
                 statusMessage.textContent = 'Status: ' + data.message;
             } catch (error) {
                 statusMessage.textContent = 'Error triggering solenoid.';
+                console.error('Error:', error);
+            }
+        }
+
+        async function triggerSprayer() {
+            try {
+                const response = await fetch('/spray', { method: 'POST' });
+                const data = await response.json();
+                statusMessage.textContent = 'Status: ' + data.message;
+            } catch (error) {
+                statusMessage.textContent = 'Error triggering sprayer.';
                 console.error('Error:', error);
             }
         }

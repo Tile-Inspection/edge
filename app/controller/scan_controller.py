@@ -1,3 +1,4 @@
+from hardware.servo import SprayerServo
 from hardware.adc import ADC
 from controller.pid import PID
 from hardware.motion import Motion
@@ -17,6 +18,7 @@ class ScanController:
         self.motion = Motion(self.serial_communicator)
         self.sensors = Sensors()
         self.solenoid = Solenoid()
+        self.sprayer = SprayerServo()
         self.camera = Camera()
         self.mic = Microphone()
         self.navigator = Navigator(self.motion)
