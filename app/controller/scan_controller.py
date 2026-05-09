@@ -1,3 +1,4 @@
+from hardware.adc import ADC
 from controller.pid import PID
 from hardware.motion import Motion
 from hardware.sensors import Sensors
@@ -21,6 +22,7 @@ class ScanController:
         self.navigator = Navigator(self.motion)
 
         self.pid = PID()
+        self.adc = ADC(channel=3)
 
         self.is_running = False
         self.is_following_path = False        

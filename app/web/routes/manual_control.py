@@ -60,6 +60,13 @@ def set_battery(request: Request, command: BatteryRequest):
     serial_communicator.send_battery(command.battery)
     return {"status": "success", "battery": command.battery}
 
+@router.get("/measure_battery")
+def get_battery(request: Request):
+    scan_service: ScanService = request.app.state.scan_service
+    adc = scan_service.controller.adc
+    battery_voltage = adc.read_voltage()
+    return {"status": "success", "battery": battery_voltage}
+
 @router.post("/solenoid")
 def set_solenoid(request: Request):
     scan_service: ScanService = request.app.state.scan_service
