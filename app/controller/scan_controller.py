@@ -34,8 +34,8 @@ class ScanController:
     def start_forward_path(self):
         """Initiates a simple forward path using the camera feed."""
         self.is_following_path = True
-        self.integral = 0
-        self.prev_error = 0
+        self.pid.integral = 0
+        self.pid.prev_error = 0
         self.serial_communicator.send_velocity(0.5, 0.0)
         print("Started forward path...")
 
@@ -88,7 +88,7 @@ class ScanController:
         
         angular_velocity = self.pid.compute(error)
         
-        self.serial_communicator.send_velocity(0.5, angular_velocity) # 0.5 is the base linear speed
+        self.serial_communicator.send_velocity(0.3, angular_velocity) # 0.5 is the base linear speed
         
     def inspect(self):
         self.solenoid.tap()
