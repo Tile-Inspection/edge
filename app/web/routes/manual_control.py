@@ -1,3 +1,6 @@
+import threading
+import time
+
 from fastapi import APIRouter, Request, HTTPException
 from pydantic import BaseModel, Field
 
@@ -16,6 +19,10 @@ class TestMoveRequest(BaseModel):
     direction: str
     speed: float = Field(..., ge=0, le=1)
     duration: float = Field(..., gt=0)
+    
+class TileDataRequest(BaseModel):
+    tile_id: int
+    label: str
 
 router = APIRouter()
 
@@ -70,6 +77,36 @@ def record_audio(request: Request):
     # Records 1 second of audio and saves it as sound.wav
     filename = scan_service.controller.mic.record(duration=1, filename="sound.wav")
     return {"filename": filename}
+
+@router.post("/capture-tile-data")
+def capture_tile_data(request: Request, body: TileDataRequest):
+    scan_service: ScanService = request.app.state.scan_service
+    
+    base_name = f"tile_{body.tile_id}_{body.label}"
+    img_filename = f"{base_name}.jpg"
+    aud_filename = f"{base_name}.wav"
+    
+    # Capture the image
+    scan_service.controller.camera.capture(img_filename)
+    
+    # Start recording in a background thread to prevent blocking
+    record_thread = threading.Thread(
+        target=scan_service.controller.mic.record,
+        kwargs={"duration": 0.3, "filename": aud_filename}
+    )
+    record_thread.start()
+    
+    # Wait 50ms (0.05 seconds), then tap the solenoid
+    time.sleep(0.05)
+    scan_service.controller.solenoid.tap()
+    
+    # Wait for the 1-second recording to finish before returning the response
+    record_thread.join()
+    
+    return {
+        "status": "success", 
+        "message": f"Captured {base_name}.jpg and {base_name}.wav"
+    }
 
 @router.post("/velocity")
 def set_velocity(request: Request, command: VelocityRequest):

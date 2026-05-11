@@ -1,7 +1,11 @@
 import subprocess
 
 class Microphone:
-    def record(self, duration=1, filename="sound.wav"):
+    def record(self, duration=1, filename=None):
+        if filename is None:
+            filename = "/home/admin/Documents/GitHub/edge/app/web/static/sound.wav"
+        else:
+            filename = f"/home/admin/Documents/GitHub/edge/app/web/static/{filename}"
         print(f"Recording {duration}s audio to {filename} using I2S (pins 12, 35, 38)...")
         try:
             # arecord is standard on Raspberry Pi for capturing audio.

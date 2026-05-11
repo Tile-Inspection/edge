@@ -20,9 +20,12 @@ class Camera:
         except Exception as e:
             print("Couldn't initialize camera.")
     
-    def capture(self):
+    def capture(self, filename=None):
         if PICAM_AVAILABLE:
-            filename = "/home/admin/Documents/GitHub/edge/app/web/static/image.jpg"
+            if filename is None:
+                filename = "/home/admin/Documents/GitHub/edge/app/web/static/image.jpg"
+            else:
+                filename = f"/home/admin/Documents/GitHub/edge/app/web/static/{filename}"
             self.picam2.capture_file(filename)
             return filename
         else:

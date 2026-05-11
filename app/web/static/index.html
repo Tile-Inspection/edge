@@ -143,6 +143,17 @@
                 <button onclick="testMove('right')">Test Right</button>
             </div>
         </div>
+
+        <div class="section">
+            <h2>Data Collection</h2>
+            <div>
+                <label>Tile ID (Auto-increments):</label><br>
+                <input type="number" id="data-tile-id" value="1" min="1"><br><br>
+                <label>Label (solid, hollow):</label><br>
+                <input type="text" id="data-label" value="normal"><br><br>
+                <button onclick="captureTileData()">Capture Image & Audio</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -359,6 +370,33 @@
                 statusMessage.textContent = 'Battery measured: ' + Number(data.battery).toFixed(2) + 'V';
             } catch (error) {
                 statusMessage.textContent = 'Error measuring battery.';
+                console.error('Error:', error);
+            }
+        }
+
+        async function captureTileData() {
+            const tileIdInput = document.getElementById('data-tile-id');
+            const labelInput = document.getElementById('data-label');
+
+            const tile_id = parseInt(tileIdInput.value) || 1;
+            const label = labelInput.value.trim() || 'unlabeled';
+
+            statusMessage.textContent = 'Capturing image and audio for tile ' + tile_id + '...';
+
+            try {
+                const response = await fetch('/capture-tile-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tile_id, label })
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    statusMessage.textContent = data.message;
+                    tileIdInput.value = tile_id + 1; // Auto-increment for convenience
+                }
+            } catch (error) {
+                statusMessage.textContent = 'Error capturing tile data.';
                 console.error('Error:', error);
             }
         }
