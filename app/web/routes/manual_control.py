@@ -17,22 +17,22 @@ router = APIRouter()
 @router.post("/control")
 def control(request: Request, body: ControlRequest):
     scan_service: ScanService = request.app.state.scan_service
-    serial_communicator = scan_service.controller.serial_communicator
+    navigator = scan_service.controller.navigator
 
     if body.action == "move":
         if body.direction not in {"forward", "backward", "left", "right"}:
             raise HTTPException(status_code=400, detail="Invalid direction for move action")
         
         if body.direction == "forward":
-            serial_communicator.send_velocity(1, 0)
+            navigator.move_forward_tile()
         elif body.direction == "backward":
-            serial_communicator.send_velocity(-1, 0)
+            navigator.move_backward_tile()
         elif body.direction == "left":
-            serial_communicator.send_velocity(0, 1)
+            navigator.turn_left()
         elif body.direction == "right":
-            serial_communicator.send_velocity(0, -1)
+            navigator.turn_right()
     elif body.action == "stop":
-        serial_communicator.send_velocity(0, 0)
+        navigator.motion.stop()
     else:
         raise HTTPException(status_code=400, detail="Invalid action")
     return {"status": "success"}
@@ -53,8 +53,8 @@ def record_audio(request: Request):
 @router.post("/velocity")
 def set_velocity(request: Request, command: VelocityRequest):
     scan_service: ScanService = request.app.state.scan_service
-    serial_communicator = scan_service.controller.serial_communicator
-    serial_communicator.send_velocity(command.linear, command.angular)
+    motion = scan_service.controller.motion
+    motion.send_velocity(command.linear, command.angular)
     return {"status": "success", "linear": command.linear, "angular": command.angular}
 
 @router.post("/solenoid")
