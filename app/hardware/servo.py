@@ -7,7 +7,7 @@ except ImportError:
     GPIO_AVAILABLE = False
 
 class SprayerServo:
-    def __init__(self, pin=17):
+    def __init__(self, pin=22):
         self.pin = pin
         if GPIO_AVAILABLE:
             GPIO.setwarnings(False)
