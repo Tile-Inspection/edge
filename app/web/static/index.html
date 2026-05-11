@@ -130,6 +130,19 @@
                 <button onclick="triggerSprayer()">Trigger Sprayer</button>
             </div>
         </div>
+
+        <div class="section">
+            <h2>Calibration & Testing</h2>
+            <div>
+                <label>Speed (0.0 - 1.0):</label><br>
+                <input type="number" id="test-speed" value="0.5" step="0.1" min="0" max="1"><br><br>
+                <label>Duration (seconds):</label><br>
+                <input type="number" id="test-duration" value="1.0" step="0.1" min="0.1"><br><br>
+                <button onclick="testMove('forward')">Test Forward</button>
+                <button onclick="testMove('left')">Test Left</button>
+                <button onclick="testMove('right')">Test Right</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -300,6 +313,24 @@
                 statusMessage.textContent = 'Status: ' + data.message;
             } catch (error) {
                 statusMessage.textContent = 'Error triggering sprayer.';
+                console.error('Error:', error);
+            }
+        }
+
+        async function testMove(direction) {
+            const speed = parseFloat(document.getElementById('test-speed').value) || 0.5;
+            const duration = parseFloat(document.getElementById('test-duration').value) || 1.0;
+
+            try {
+                const response = await fetch('/test-move', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ direction, speed, duration })
+                });
+                const data = await response.json();
+                statusMessage.textContent = 'Test move status: ' + data.message;
+            } catch (error) {
+                statusMessage.textContent = 'Error executing test move.';
                 console.error('Error:', error);
             }
         }

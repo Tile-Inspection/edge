@@ -30,3 +30,23 @@ class Navigator:
         self.motion.turn_left(speed)
         time.sleep(TURN_DURATION * speed)  # Adjust this duration based on testing to achieve a 90 degree turn
         self.motion.stop()
+        
+    ## [START] TESTING/CALIBRATION FUNCTIONS
+    def forward(self, speed, duration):
+        """Moves the robot forward for the specified duration."""
+        self.motion.forward(speed)
+        time.sleep(duration)
+        self.motion.stop()
+        
+    def right(self, speed, duration):
+        """Moves the robot right for the specified duration."""
+        self.motion.turn_right(speed)
+        time.sleep(duration)
+        self.motion.stop()
+
+    def left(self, speed, duration):
+        """Moves the robot left for the specified duration."""
+        self.motion.turn_left(speed)
+        time.sleep(duration)
+        self.motion.stop()
+    ## [END] TESTING/CALIBRATION FUNCTIONS

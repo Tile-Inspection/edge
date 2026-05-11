@@ -11,6 +11,11 @@ class ControlRequest(BaseModel):
 class VelocityRequest(BaseModel):
     linear: float = Field(..., ge=-1, le=1)  # Linear velocity (-1 to 1) - positive = forward, negative = backward
     angular: float = Field(..., ge=-1, le=1)  # Angular velocity (-1 to 1) - positive = turn left, negative = turn right
+    
+class TestMoveRequest(BaseModel):
+    direction: str
+    speed: float = Field(..., ge=0, le=1)
+    duration: float = Field(..., gt=0)
 
 router = APIRouter()
 
@@ -36,6 +41,22 @@ def control(request: Request, body: ControlRequest):
     else:
         raise HTTPException(status_code=400, detail="Invalid action")
     return {"status": "success"}
+
+@router.post("/test-move")
+def test_move(request: Request, body: TestMoveRequest):
+    scan_service: ScanService = request.app.state.scan_service
+    navigator = scan_service.controller.navigator
+
+    if body.direction == "forward":
+        navigator.forward(body.speed, body.duration)
+    elif body.direction == "right":
+        navigator.right(body.speed, body.duration)
+    elif body.direction == "left":
+        navigator.left(body.speed, body.duration)
+    else:
+        raise HTTPException(status_code=400, detail="Invalid direction")
+        
+    return {"status": "success", "message": f"Moved {body.direction}"}
 
 @router.post("/capture")
 def capture(request: Request):
