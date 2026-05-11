@@ -98,6 +98,7 @@
                 <button onclick="startScan()">Start Scan</button>
                 <button onclick="stopScan()">Stop Scan</button>
                 <button onclick="capture()">Capture Image</button>
+                <button onclick="recordAudio()">Record Audio</button>
             </div>
 
             <div class="status">
@@ -277,6 +278,17 @@
                 statusMessage.textContent = 'Captured: ' + data.filename;
             } catch (error) {
                 statusMessage.textContent = 'Error capturing image.';
+                console.error('Error:', error);
+            }
+        }
+
+        async function recordAudio() {
+            try {
+                const response = await fetch('/record', { method: 'POST' });
+                const data = await response.json();
+                statusMessage.textContent = 'Recorded: ' + data.filename;
+            } catch (error) {
+                statusMessage.textContent = 'Error recording audio.';
                 console.error('Error:', error);
             }
         }

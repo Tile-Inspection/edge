@@ -46,6 +46,13 @@ def capture(request: Request):
     filename = scan_service.controller.camera.capture()
     return {"filename": filename}
 
+@router.post("/record")
+def record_audio(request: Request):
+    scan_service: ScanService = request.app.state.scan_service
+    # Records 1 second of audio and saves it as sound.wav
+    filename = scan_service.controller.mic.record(duration=1, filename="sound.wav")
+    return {"filename": filename}
+
 @router.post("/velocity")
 def set_velocity(request: Request, command: VelocityRequest):
     scan_service: ScanService = request.app.state.scan_service
