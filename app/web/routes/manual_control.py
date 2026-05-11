@@ -12,9 +12,6 @@ class VelocityRequest(BaseModel):
     linear: float = Field(..., ge=-1, le=1)  # Linear velocity (-1 to 1) - positive = forward, negative = backward
     angular: float = Field(..., ge=-1, le=1)  # Angular velocity (-1 to 1) - positive = turn left, negative = turn right
 
-class BatteryRequest(BaseModel):
-    battery: float = Field(..., ge=6.0, le=8.4)  # Battery level (6.0 to 8.4)
-
 router = APIRouter()
 
 @router.post("/control")
@@ -59,13 +56,6 @@ def set_velocity(request: Request, command: VelocityRequest):
     serial_communicator = scan_service.controller.serial_communicator
     serial_communicator.send_velocity(command.linear, command.angular)
     return {"status": "success", "linear": command.linear, "angular": command.angular}
-
-@router.post("/battery")
-def set_battery(request: Request, command: BatteryRequest):
-    scan_service: ScanService = request.app.state.scan_service
-    serial_communicator = scan_service.controller.serial_communicator
-    serial_communicator.send_battery(command.battery)
-    return {"status": "success", "battery": command.battery}
 
 @router.post("/solenoid")
 def set_solenoid(request: Request):
