@@ -1,3 +1,7 @@
+import csv
+import os
+import time
+
 from movement.alignment import Alignment
 from hardware.servo import SprayerServo
 from movement.pid import PID
@@ -67,12 +71,25 @@ class ScanController:
 
     def follow_path_step(self):
         error = self.alignment.get_error()
+        angular_velocity = 0.0
         if error is None:
-            self.motion.send_velocity(0.3, 0.0)  # Move forward if no error info
-            return
+            angular_velocity = 0.0
+        else:
+            angular_velocity = self.pid.compute(error)
         
-        angular_velocity = self.pid.compute(error)
-        
+        # Log the error, linear velocity and angular velocity for debugging
+        log_file = "debug_log.csv"
+        file_exists = os.path.isfile(log_file)
+        try:
+            print('trying writing to csv')
+            with open(log_file, "a", newline="") as f:
+                writer = csv.writer(f)
+                if not file_exists or os.path.getsize(log_file) == 0:
+                    writer.writerow(["timestamp", "error", "linear_velocity", "angular_velocity"])
+                writer.writerow([time.time(), error, 0.3, angular_velocity])
+        except Exception as e:
+            print(f"Error logging to CSV: {e}")
+
         self.motion.send_velocity(0.3, angular_velocity)
         
     def inspect(self):
