@@ -7,7 +7,7 @@ from fastapi import APIRouter, Request, HTTPException
 from pydantic import BaseModel, Field
 
 from services.scan_service import ScanService
-from navigation.analyze import read_frame, analyze
+from navigation.analyze import read_frame, analyze, Line
 from constants import X_DIM, Y_DIM
 
 class ControlRequest(BaseModel):
@@ -149,11 +149,19 @@ def test_vision(request: Request):
         
     frame = read_frame(filename, x_dim=X_DIM, y_dim=Y_DIM)
     _, _, left_line, right_line = analyze(frame, x_dim=X_DIM, y_dim=Y_DIM)
+
+    left_line_interpolated = left_line.extend_line_to_frame(X_DIM, Y_DIM)
+    right_line_interpolated = right_line.extend_line_to_frame(X_DIM, Y_DIM)
     
     if left_line is not None:
         cv2.line(frame, (left_line.x1, left_line.y1), (left_line.x2, left_line.y2), (255, 0, 0), 2)
     if right_line is not None:
         cv2.line(frame, (right_line.x1, right_line.y1), (right_line.x2, right_line.y2), (255, 0, 0), 2)
+    
+    if left_line_interpolated is not None:
+        cv2.line(frame, (left_line_interpolated.x1, left_line_interpolated.y1), (left_line_interpolated.x2, left_line_interpolated.y2), (0, 255, 0), 1)
+    if right_line_interpolated is not None:
+        cv2.line(frame, (right_line_interpolated.x1, right_line_interpolated.y1), (right_line_interpolated.x2, right_line_interpolated.y2), (0, 255, 0), 1)
         
     save_path = os.path.join(static_dir, "detected.jpg")
     cv2.imwrite(save_path, frame)
