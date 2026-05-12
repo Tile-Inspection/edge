@@ -1,10 +1,14 @@
 import threading
 import time
+import os
+import cv2
 
 from fastapi import APIRouter, Request, HTTPException
 from pydantic import BaseModel, Field
 
 from services.scan_service import ScanService
+from navigation.analyze import read_frame, analyze
+from constants import X_DIM, Y_DIM
 
 class ControlRequest(BaseModel):
     action: str
@@ -128,3 +132,30 @@ def set_spray(request: Request):
     sprayer = scan_service.controller.sprayer
     sprayer.spray()
     return {"status": "success", "message": "Spray activated"}
+
+@router.post("/test-vision")
+def test_vision(request: Request):
+    scan_service: ScanService = request.app.state.scan_service
+    camera = scan_service.controller.camera
+    
+    filename = camera.capture()
+    static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+    
+    if not filename or not os.path.exists(filename):
+        filename = os.path.join(static_dir, "sample.jpg")
+        
+    if not os.path.exists(filename):
+        raise HTTPException(status_code=404, detail="Image not found for processing")
+        
+    frame = read_frame(filename, x_dim=X_DIM, y_dim=Y_DIM)
+    _, _, left_line, right_line = analyze(frame, x_dim=X_DIM, y_dim=Y_DIM)
+    
+    if left_line is not None:
+        cv2.line(frame, (left_line.x1, left_line.y1), (left_line.x2, left_line.y2), (255, 0, 0), 2)
+    if right_line is not None:
+        cv2.line(frame, (right_line.x1, right_line.y1), (right_line.x2, right_line.y2), (255, 0, 0), 2)
+        
+    save_path = os.path.join(static_dir, "detected.jpg")
+    cv2.imwrite(save_path, frame)
+    
+    return {"status": "success", "filename": "/detected.jpg"}

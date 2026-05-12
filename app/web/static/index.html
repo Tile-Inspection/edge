@@ -141,6 +141,7 @@
                 <button onclick="testMove('forward')">Test Forward</button>
                 <button onclick="testMove('left')">Test Left</button>
                 <button onclick="testMove('right')">Test Right</button>
+                <button onclick="testVision()">Test Vision Processing</button>
             </div>
         </div>
 
@@ -343,6 +344,28 @@
             } catch (error) {
                 statusMessage.textContent = 'Error executing test move.';
                 console.error('Error:', error);
+            }
+        }
+
+        async function testVision() {
+            // Open the new tab immediately to prevent popup blockers from stopping it
+            const newTab = window.open('', '_blank');
+            newTab.document.write("Capturing and processing image...");
+
+            try {
+                const response = await fetch('/test-vision', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    // Appending a timestamp query parameter will bypass the browser's cache 
+                    // and force the newly detected.jpg to load if run multiple times.
+                    newTab.location.href = data.filename + '?t=' + new Date().getTime();
+                } else {
+                    newTab.document.write('<br>Error processing image: ' + data.detail);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                newTab.document.write('<br>Failed to test vision processing');
             }
         }
 
