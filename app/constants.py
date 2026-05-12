@@ -1,2 +1,2 @@
-X_DIM = 240
-Y_DIM = 320
+X_DIM = 320
+Y_DIM = 240
