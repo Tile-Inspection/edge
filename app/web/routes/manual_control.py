@@ -96,12 +96,12 @@ def capture_tile_data(request: Request, body: TileDataRequest):
     # Start recording in a background thread to prevent blocking
     record_thread = threading.Thread(
         target=scan_service.controller.mic.record,
-        kwargs={"duration": 0.3, "filename": aud_filename}
+        kwargs={"duration": 1, "filename": aud_filename}
     )
     record_thread.start()
     
-    # Wait 50ms (0.05 seconds), then tap the solenoid
-    time.sleep(0.05)
+    # Wait 300ms (0.3 seconds), then tap the solenoid
+    time.sleep(0.3)
     scan_service.controller.solenoid.tap()
     
     # Wait for the 1-second recording to finish before returning the response
