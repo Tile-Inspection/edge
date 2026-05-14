@@ -12,10 +12,14 @@ class Microphone:
             # ALSA handles the I2S hardware interface connected to pins 12, 35, and 38.
             subprocess.run([
                 "arecord",
+                "-D", "dmic_mono",
+                "-c", "1",
+                "-r", "48000",
+                "-f", "S32_LE",
+                "-t", "wav",
+                "-V", "mono",
                 "-d", str(duration),
-                "-f", "S32_LE", # Standard format for INMP441 I2S
-                "-r", "44100",  # 44.1kHz sample rate
-                "-c", "1",      # Mono channel
+                "-v",
                 filename
             ], check=True)
             return filename
