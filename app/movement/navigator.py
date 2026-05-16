@@ -41,14 +41,31 @@ class Navigator:
             return
             
         start_heading = self.magnetometer.get_heading()
-        speed = 0.5
-        self.motion.turn_right(speed)
+        target_angle = 90.0
+        
+        # Proportional controller constants
+        kp = 0.015       # Proportional gain
+        min_speed = 0.25 # Minimum speed to overcome friction
+        max_speed = 0.5  # Maximum turning speed
+        tolerance = 2.0  # Stop when within 2 degrees of target
         
         while True:
             current_heading = self.magnetometer.get_heading()
             turned = (current_heading - start_heading) % 360
-            if 85 <= turned <= 180:  # Allow 5 degree tolerance and prevent backward wrap false positives
+            
+            # Handle backward sensor jitter wraps at the start of the turn
+            if turned > 180:
+                turned -= 360
+                
+            error = target_angle - turned
+            if error <= tolerance:
                 break
+                
+            # Calculate speed based on remaining error and clamp it between min/max
+            speed = kp * error
+            speed = max(min_speed, min(max_speed, speed))
+            
+            self.motion.turn_right(speed)
             time.sleep(0.01)
             
         self.motion.stop()
@@ -61,14 +78,28 @@ class Navigator:
             return
             
         start_heading = self.magnetometer.get_heading()
-        speed = 0.5
-        self.motion.turn_left(speed)
+        target_angle = 90.0
+        
+        kp = 0.015
+        min_speed = 0.25
+        max_speed = 0.5
+        tolerance = 2.0
         
         while True:
             current_heading = self.magnetometer.get_heading()
             turned = (start_heading - current_heading) % 360
-            if 85 <= turned <= 180:
+            
+            if turned > 180:
+                turned -= 360
+                
+            error = target_angle - turned
+            if error <= tolerance:
                 break
+                
+            speed = kp * error
+            speed = max(min_speed, min(max_speed, speed))
+            
+            self.motion.turn_left(speed)
             time.sleep(0.01)
             
         self.motion.stop()
