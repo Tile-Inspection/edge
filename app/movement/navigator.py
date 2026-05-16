@@ -70,7 +70,7 @@ class Navigator:
                 break
                 
             speed = pid.compute(error)
-            log_data.append([time.time(), current_heading, speed])
+            log_data.append([time.time(), current_heading, speed, error])
             
             print(f"Turn right PID - Error: {error:.2f}, Speed: {speed:.2f}, Heading: {current_heading:.2f}")
             
@@ -87,14 +87,14 @@ class Navigator:
         start_wait = time.time()
         while time.time() - start_wait < 1.0:
             heading = self.magnetometer.get_heading()
-            log_data.append([time.time(), heading, 0.0])
+            log_data.append([time.time(), heading, 0.0, 0.0])
             time.sleep(0.01)
             
         # Write log data to CSV
         try:
             with open("turn_right_log.csv", "w", newline="") as f:
                 writer = csv.writer(f)
-                writer.writerow(["timestamp", "current_reading", "speed"])
+                writer.writerow(["timestamp", "current_reading", "speed", "error"])
                 writer.writerows(log_data)
             print("Turn right log saved to turn_right_log.csv")
         except Exception as e:
