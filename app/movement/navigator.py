@@ -1,8 +1,10 @@
 import time
+import csv
 
 from hardware.motion import Motion
 from hardware.magnetometer import Magnetometer
 from movement.pid import PID
+from movement.proportional import Proportional
 
 ONE_TILE_DURATION = 1.0  # seconds to move one tile at full speed, adjust as needed based on testing
 TURN_DURATION = 0.5  # seconds to turn 90 degrees at full speed, adjust as needed based on testing
@@ -46,7 +48,7 @@ class Navigator:
         
         tolerance = 2.0  # We can use a tighter tolerance now that it corrects itself
         
-        pid = PID()
+        pid = Proportional()
         while True:
             current_heading = self.magnetometer.get_heading()
             turned = (current_heading - start_heading) % 360
@@ -54,13 +56,14 @@ class Navigator:
             # Handle backward sensor jitter wraps at the start of the turn
             if turned > 180:
                 turned -= 360
-                
+            
             error = target_angle - turned
+            
+            speed = pid.compute(error)
+            
             if abs(error) <= tolerance:
                 break
                 
-            speed = pid.compute(error)
-            
             if speed > 0:
                 self.motion.turn_right(speed)
             else:
@@ -82,7 +85,7 @@ class Navigator:
         
         tolerance = 2.0
         
-        pid = PID()
+        pid = Proportional()
         while True:
             current_heading = self.magnetometer.get_heading()
             turned = (start_heading - current_heading) % 360
