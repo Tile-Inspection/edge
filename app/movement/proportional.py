@@ -1,5 +1,5 @@
 class Proportional:
-    def __init__(self, kp=0.006):
+    def __init__(self, kp=0.005):
         self.kp = kp
         self.prev_error = 0
         self.integral = 0

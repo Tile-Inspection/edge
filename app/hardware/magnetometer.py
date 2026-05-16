@@ -12,7 +12,7 @@ class Magnetometer:
     Interfaces with a GY-271 (QMC5883L or HMC5883L) magnetometer over I2C.
     Default address is 0x1E (HMC5883L). QMC5883L chips use 0x0D.
     """
-    def __init__(self, bus_num=1, address=0x1E, offset_x=-11.0, offset_y=192.5, scale_x=1.0287, scale_y=0.9729, declination_rad=0.0):
+    def __init__(self, bus_num=1, address=0x1E, offset_x=-7.5, offset_y=189.5, scale_x=1.0311, scale_y=0.9707, declination_rad=0.0):
         self.bus_num = bus_num
         self.address = address
         self.offset_x = offset_x
