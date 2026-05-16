@@ -58,12 +58,22 @@ class Camera:
         video_writer = cv2.VideoWriter(filename, fourcc, fps, (w, h))
         
         start_time = time.time()
-        while (time.time() - start_time) < duration:
+        frames_written = 0
+        
+        while True:
+            if (time.time() - start_time) >= duration:
+                break
+                
             frame = self.picam2.capture_array()
             if frame is not None:
                 bgr_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-                video_writer.write(bgr_frame)
-            time.sleep(1.0 / fps)
+                
+                # Duplicate frames if capture is slow, or skip if too fast, 
+                # to ensure the final video matches the expected real-time duration
+                expected_frames = int((time.time() - start_time) * fps)
+                while frames_written <= expected_frames:
+                    video_writer.write(bgr_frame)
+                    frames_written += 1
             
         video_writer.release()
         print(f"Stopped video recording. Saved to {filename}")
