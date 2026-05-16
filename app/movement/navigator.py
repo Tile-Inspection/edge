@@ -48,7 +48,7 @@ class Navigator:
         start_wait = time.time()
         while time.time() - start_wait < 1.0:
             heading = self.magnetometer.get_heading()
-            log_data.append([time.time(), heading, 0.0])
+            log_data.append([time.time(), heading, 0.0, 0.0])
             time.sleep(0.01)
             
         start_heading = self.magnetometer.get_heading()
