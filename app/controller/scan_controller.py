@@ -2,6 +2,7 @@ import csv
 import os
 import time
 
+from hardware.magnetometer import Magnetometer
 from movement.alignment import Alignment
 from hardware.servo import SprayerServo
 from movement.pid import PID
@@ -23,6 +24,7 @@ class ScanController:
         self.sprayer = SprayerServo()
         self.camera = Camera()
         self.mic = Microphone()
+        self.magnetometer = Magnetometer()
         self.navigator = Navigator(self.motion)
 
         self.alignment = Alignment(self.camera)
