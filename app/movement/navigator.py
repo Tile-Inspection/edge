@@ -4,7 +4,7 @@ import csv
 from hardware.motion import Motion
 from hardware.magnetometer import Magnetometer
 from movement.pid import PID
-from movement.pid import Proportional
+from movement.proportional import Proportional
 
 ONE_TILE_DURATION = 1.0  # seconds to move one tile at full speed, adjust as needed based on testing
 TURN_DURATION = 0.5  # seconds to turn 90 degrees at full speed, adjust as needed based on testing
