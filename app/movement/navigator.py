@@ -65,15 +65,15 @@ class Navigator:
             if turned > 180:
                 turned -= 360
                 
-            error = target_angle - turned
-            if abs(error) <= tolerance:
-                break
-                
             speed = pid.compute(error)
             log_data.append([time.time(), current_heading, speed, error])
             
             print(f"Turn right PID - Error: {error:.2f}, Speed: {speed:.2f}, Heading: {current_heading:.2f}")
-            
+                
+            error = target_angle - turned
+            if abs(error) <= tolerance:
+                break
+                
             if speed > 0:
                 self.motion.turn_right(speed)
             else:
