@@ -27,6 +27,10 @@ class TestMoveRequest(BaseModel):
 class TileDataRequest(BaseModel):
     tile_id: int
     label: str
+    
+class RecordVideoRequest(BaseModel):
+    duration: float = Field(5.0, gt=0)
+    filename: str | None = None
 
 router = APIRouter()
 
@@ -81,6 +85,19 @@ def record_audio(request: Request):
     # Records 1 second of audio and saves it as sound.wav
     filename = scan_service.controller.mic.record(duration=1, filename="sound.wav")
     return {"filename": filename}
+
+@router.post("/record-video")
+def record_video_endpoint(request: Request, body: RecordVideoRequest):
+    scan_service: ScanService = request.app.state.scan_service
+    
+    # Start recording in a background thread to prevent blocking the API
+    record_thread = threading.Thread(
+        target=scan_service.controller.camera.record_video,
+        kwargs={"duration": body.duration, "filename": body.filename}
+    )
+    record_thread.start()
+    
+    return {"status": "success", "message": f"Started recording video for {body.duration} seconds"}
 
 @router.post("/capture-tile-data")
 def capture_tile_data(request: Request, body: TileDataRequest):

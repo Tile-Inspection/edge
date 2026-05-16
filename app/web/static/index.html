@@ -153,6 +153,7 @@
                 <label>Label (solid, hollow):</label><br>
                 <input type="text" id="data-label" value="normal"><br><br>
                 <button onclick="captureTileData()">Capture Image & Audio</button>
+                <button id="record-video-btn" onclick="recordVideo()">Record Video (5s)</button>
             </div>
         </div>
     </div>
@@ -306,6 +307,42 @@
                 console.error('Error:', error);
             }
         }
+
+        function recordVideo() {
+            const btn = document.getElementById("record-video-btn");
+
+            // Disable the button and update text to show it's working
+            btn.disabled = true;
+            btn.innerText = "Recording...";
+
+            fetch('/record-video', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    duration: 5.0
+                    // filename: "custom_video.avi" // You can optionally pass a filename here too!
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message);
+
+                    // Since the API returns immediately (background thread), 
+                    // we use a timeout to re-enable the button after the 5 seconds is up.
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.innerText = "Record Video (5s)";
+                    }, 5000);
+                })
+                .catch((error) => {
+                    console.error("Error starting video record:", error);
+                    btn.disabled = false;
+                    btn.innerText = "Record Video (5s)";
+                });
+        }
+
 
         async function triggerSolenoid() {
             try {

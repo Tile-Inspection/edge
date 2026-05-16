@@ -48,13 +48,11 @@ class ScanController:
     def start(self):
         self.start_forward_path()
         self.is_running = True
-        self.camera.start_recording()
         print("ScanController is running...")
 
     def stop(self):
         self.is_running = False
         self.stop_forward_path()
-        self.camera.stop_recording()
         print("ScanController is stopped...")
         
     def step(self):
