@@ -1,4 +1,5 @@
 import time
+import csv
 
 from hardware.motion import Motion
 from hardware.magnetometer import Magnetometer
@@ -41,6 +42,15 @@ class Navigator:
             self.turn_right()
             return
             
+        log_data = []
+        
+        # Log 1 second before the turn
+        start_wait = time.time()
+        while time.time() - start_wait < 1.0:
+            heading = self.magnetometer.get_heading()
+            log_data.append([time.time(), heading, 0.0])
+            time.sleep(0.01)
+            
         start_heading = self.magnetometer.get_heading()
         target_angle = 90.0
         
@@ -60,6 +70,7 @@ class Navigator:
                 break
                 
             speed = pid.compute(error)
+            log_data.append([time.time(), current_heading, speed])
             
             if speed > 0:
                 self.motion.turn_right(speed)
@@ -69,6 +80,23 @@ class Navigator:
             time.sleep(0.01)
             
         self.motion.stop()
+        
+        # Log 1 second after the turn
+        start_wait = time.time()
+        while time.time() - start_wait < 1.0:
+            heading = self.magnetometer.get_heading()
+            log_data.append([time.time(), heading, 0.0])
+            time.sleep(0.01)
+            
+        # Write log data to CSV
+        try:
+            with open("turn_right_log.csv", "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(["timestamp", "current_reading", "speed"])
+                writer.writerows(log_data)
+            print("Turn right log saved to turn_right_log.csv")
+        except Exception as e:
+            print(f"Error saving turn log: {e}")
 
     def turn_left_90(self):
         """Turns the robot left by exactly 90 degrees using the magnetometer."""
