@@ -28,9 +28,9 @@ class Motion:
         
     def turn_left(self, speed: float):
         assert 0 <= speed <= 1, "Speed must be between 0 and 1"
-        self.send_velocity(0, speed)
+        self.send_velocity(0, -speed)
         
     def turn_right(self, speed: float):
         assert 0 <= speed <= 1, "Speed must be between 0 and 1"
-        self.send_velocity(0, -speed)
+        self.send_velocity(0, speed)
     
