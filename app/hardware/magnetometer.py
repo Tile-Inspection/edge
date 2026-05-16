@@ -43,22 +43,6 @@ class Magnetometer:
                 # Continuous measurement, 200Hz data rate, 8G range, 512 Over Sampling Ratio
                 self.bus.write_byte_data(self.address, 0x09, 0x1D)
 
-    def _read_word(self, reg, big_endian=False):
-        """Reads a 16-bit word from the given register."""
-        if big_endian:
-            high = self.bus.read_byte_data(self.address, reg)
-            low = self.bus.read_byte_data(self.address, reg + 1)
-        else:
-            low = self.bus.read_byte_data(self.address, reg)
-            high = self.bus.read_byte_data(self.address, reg + 1)
-            
-        val = (high << 8) + low
-        
-        # Convert to signed 16-bit integer
-        if val >= 0x8000:
-            return -((65535 - val) + 1)
-        return val
-
     def get_heading(self) -> float:
         """Reads X and Y axis values and calculates the heading in degrees."""
         if not self.bus:
@@ -66,14 +50,21 @@ class Magnetometer:
 
         try:
             if self.address == 0x1E:
-                # HMC5883L registers: X_MSB=0x03, Z_MSB=0x05, Y_MSB=0x07 (Big Endian)
-                x = self._read_word(0x03, big_endian=True)
-                y = self._read_word(0x07, big_endian=True)
+                # HMC5883L registers: X_MSB=0x03 to Y_LSB=0x08 (Big Endian)
+                # You MUST read all 6 bytes sequentially to unlock the data registers for the next reading.
+                data = self.bus.read_i2c_block_data(self.address, 0x03, 6)
+                x = (data[0] << 8) | data[1]
+                y = (data[4] << 8) | data[5]
             else:
-                # QMC5883L registers: X_LSB=0x00, Y_LSB=0x02 (Little Endian)
-                x = self._read_word(0x00, big_endian=False)
-                y = self._read_word(0x02, big_endian=False)
+                # QMC5883L registers: X_LSB=0x00 to Z_MSB=0x05 (Little Endian)
+                data = self.bus.read_i2c_block_data(self.address, 0x00, 6)
+                x = (data[1] << 8) | data[0]
+                y = (data[3] << 8) | data[2]
             
+            # Convert unsigned 16-bit values to signed 16-bit integers
+            x = x - 65536 if x >= 32768 else x
+            y = y - 65536 if y >= 32768 else y
+
             heading_rad = math.atan2(y, x)
             return (math.degrees(heading_rad) + 360) % 360
         except Exception as e:
