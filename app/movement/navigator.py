@@ -64,13 +64,14 @@ class Navigator:
             # Handle backward sensor jitter wraps at the start of the turn
             if turned > 180:
                 turned -= 360
-                
+            
+            error = target_angle - turned
+            
             speed = pid.compute(error)
             log_data.append([time.time(), current_heading, speed, error])
             
             print(f"Turn right PID - Error: {error:.2f}, Speed: {speed:.2f}, Heading: {current_heading:.2f}")
                 
-            error = target_angle - turned
             if abs(error) <= tolerance:
                 break
                 
