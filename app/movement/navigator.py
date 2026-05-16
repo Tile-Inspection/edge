@@ -56,7 +56,7 @@ class Navigator:
         
         tolerance = 2.0  # We can use a tighter tolerance now that it corrects itself
         
-        pid = PID()
+        pid = PID(kp=0.015, ki=0.0005, kd=0.001)
         while True:
             current_heading = self.magnetometer.get_heading()
             turned = (current_heading - start_heading) % 360
