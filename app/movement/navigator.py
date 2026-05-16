@@ -72,6 +72,8 @@ class Navigator:
             speed = pid.compute(error)
             log_data.append([time.time(), current_heading, speed])
             
+            print(f"Turn right PID - Error: {error:.2f}, Speed: {speed:.2f}, Heading: {current_heading:.2f}")
+            
             if speed > 0:
                 self.motion.turn_right(speed)
             else:
