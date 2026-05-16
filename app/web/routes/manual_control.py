@@ -201,3 +201,11 @@ def test_vision(request: Request):
     cv2.imwrite(save_path, frame)
     
     return {"status": "success", "filename": "/detected.jpg"}
+
+@router.get("/battery")
+def get_battery(request: Request):
+    scan_service: ScanService = request.app.state.scan_service
+    return {
+        "status": "success", 
+        "battery": scan_service.controller.serial_communicator.battery
+    }
