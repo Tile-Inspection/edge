@@ -44,9 +44,9 @@ class Navigator:
         target_angle = 90.0
         
         # Proportional controller constants
-        kp = 0.015       # Proportional gain
+        kp = 0.008       # Reduced gain so it slows down earlier
         max_speed = 0.5  # Maximum turning speed
-        tolerance = 2.0  # Stop when within 2 degrees of target
+        tolerance = 3.5  # Increased tolerance to account for momentum & 100ms serial latency
         
         while True:
             current_heading = self.magnetometer.get_heading()
@@ -60,9 +60,9 @@ class Navigator:
             if error <= tolerance:
                 break
                 
-            # Calculate speed based on remaining error and clamp it to max_speed
+            # Calculate speed based on remaining error and clamp it between 0.0 and max_speed
             speed = kp * error
-            speed = min(max_speed, speed)
+            speed = max(0.0, min(max_speed, speed))
             
             self.motion.turn_right(speed)
             time.sleep(0.01)
@@ -79,9 +79,9 @@ class Navigator:
         start_heading = self.magnetometer.get_heading()
         target_angle = 90.0
         
-        kp = 0.015
+        kp = 0.008
         max_speed = 0.5
-        tolerance = 2.0
+        tolerance = 3.5
         
         while True:
             current_heading = self.magnetometer.get_heading()
@@ -95,7 +95,7 @@ class Navigator:
                 break
                 
             speed = kp * error
-            speed = min(max_speed, speed)
+            speed = max(0.0, min(max_speed, speed))
             
             self.motion.turn_left(speed)
             time.sleep(0.01)
