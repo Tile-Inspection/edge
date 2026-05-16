@@ -23,6 +23,9 @@ class TestMoveRequest(BaseModel):
     direction: str
     speed: float = Field(..., ge=0, le=1)
     duration: float = Field(..., gt=0)
+
+class Turn90Request(BaseModel):
+    direction: str
     
 class TileDataRequest(BaseModel):
     tile_id: int
@@ -56,6 +59,20 @@ def control(request: Request, body: ControlRequest):
     else:
         raise HTTPException(status_code=400, detail="Invalid action")
     return {"status": "success"}
+
+@router.post("/turn-90")
+def turn_90(request: Request, body: Turn90Request):
+    scan_service: ScanService = request.app.state.scan_service
+    navigator = scan_service.controller.navigator
+    
+    if body.direction == "left":
+        navigator.turn_left_90()
+    elif body.direction == "right":
+        navigator.turn_right_90()
+    else:
+        raise HTTPException(status_code=400, detail="Invalid direction")
+        
+    return {"status": "success", "message": f"Turned 90 degrees {body.direction}"}
 
 @router.post("/test-move")
 def test_move(request: Request, body: TestMoveRequest):

@@ -1,13 +1,15 @@
 import time
 
 from hardware.motion import Motion
+from hardware.magnetometer import Magnetometer
 
 ONE_TILE_DURATION = 1.0  # seconds to move one tile at full speed, adjust as needed based on testing
 TURN_DURATION = 0.5  # seconds to turn 90 degrees at full speed, adjust as needed based on testing
 
 class Navigator:
-    def __init__(self, motion: Motion):
+    def __init__(self, motion: Motion, magnetometer: Magnetometer):
         self.motion = motion
+        self.magnetometer = magnetometer
         self.turn_right_next = True  # alternate turns
         
     def move_forward_tile(self):
@@ -31,6 +33,46 @@ class Navigator:
         time.sleep(TURN_DURATION * speed)  # Adjust this duration based on testing to achieve a 90 degree turn
         self.motion.stop()
         
+    def turn_right_90(self):
+        """Turns the robot right by exactly 90 degrees using the magnetometer."""
+        if not self.magnetometer or not self.magnetometer.bus:
+            print("Magnetometer not available, falling back to time-based turn.")
+            self.turn_right()
+            return
+            
+        start_heading = self.magnetometer.get_heading()
+        speed = 0.5
+        self.motion.turn_right(speed)
+        
+        while True:
+            current_heading = self.magnetometer.get_heading()
+            turned = (current_heading - start_heading) % 360
+            if 85 <= turned <= 180:  # Allow 5 degree tolerance and prevent backward wrap false positives
+                break
+            time.sleep(0.01)
+            
+        self.motion.stop()
+
+    def turn_left_90(self):
+        """Turns the robot left by exactly 90 degrees using the magnetometer."""
+        if not self.magnetometer or not self.magnetometer.bus:
+            print("Magnetometer not available, falling back to time-based turn.")
+            self.turn_left()
+            return
+            
+        start_heading = self.magnetometer.get_heading()
+        speed = 0.5
+        self.motion.turn_left(speed)
+        
+        while True:
+            current_heading = self.magnetometer.get_heading()
+            turned = (start_heading - current_heading) % 360
+            if 85 <= turned <= 180:
+                break
+            time.sleep(0.01)
+            
+        self.motion.stop()
+
     ## [START] TESTING/CALIBRATION FUNCTIONS
     def forward(self, speed, duration):
         """Moves the robot forward for the specified duration."""

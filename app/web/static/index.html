@@ -128,6 +128,8 @@
             <div>
                 <button onclick="triggerSolenoid()">Trigger Solenoid</button>
                 <button onclick="triggerSprayer()">Trigger Sprayer</button>
+                <button onclick="turn90('left')">Turn Left 90°</button>
+                <button onclick="turn90('right')">Turn Right 90°</button>
             </div>
         </div>
 
@@ -458,6 +460,30 @@
             } catch (error) {
                 statusMessage.textContent = 'Error capturing tile data.';
                 console.error('Error:', error);
+            }
+        }
+
+        async function turn90(direction) {
+            try {
+                const response = await fetch('/turn-90', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ direction: direction })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    console.log("Success:", data.message);
+                    // Optional: Show a success toast or UI feedback here
+                } else {
+                    console.error("Error:", data.detail || "Failed to turn");
+                    alert("Error: " + (data.detail || "Failed to turn"));
+                }
+            } catch (error) {
+                console.error("Network or fetch error:", error);
             }
         }
 

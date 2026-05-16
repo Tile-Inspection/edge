@@ -25,7 +25,7 @@ class ScanController:
         self.camera = Camera()
         self.mic = Microphone()
         self.magnetometer = Magnetometer()
-        self.navigator = Navigator(self.motion)
+        self.navigator = Navigator(self.motion, self.magnetometer)
 
         self.alignment = Alignment(self.camera)
         self.pid = PID()
