@@ -2,6 +2,7 @@ import time
 
 from hardware.motion import Motion
 from hardware.magnetometer import Magnetometer
+from movement.pid import PID
 
 ONE_TILE_DURATION = 1.0  # seconds to move one tile at full speed, adjust as needed based on testing
 TURN_DURATION = 0.5  # seconds to turn 90 degrees at full speed, adjust as needed based on testing
@@ -43,11 +44,9 @@ class Navigator:
         start_heading = self.magnetometer.get_heading()
         target_angle = 90.0
         
-        # Proportional controller constants
-        kp = 0.008       # Reduced gain so it slows down earlier
-        max_speed = 0.5  # Maximum turning speed
-        tolerance = 3.5  # Increased tolerance to account for momentum & 100ms serial latency
+        tolerance = 2.0  # We can use a tighter tolerance now that it corrects itself
         
+        pid = PID()
         while True:
             current_heading = self.magnetometer.get_heading()
             turned = (current_heading - start_heading) % 360
@@ -57,14 +56,16 @@ class Navigator:
                 turned -= 360
                 
             error = target_angle - turned
-            if error <= tolerance:
+            if abs(error) <= tolerance:
                 break
                 
-            # Calculate speed based on remaining error and clamp it between 0.0 and max_speed
-            speed = kp * error
-            speed = max(0.0, min(max_speed, speed))
+            speed = pid.compute(error)
             
-            self.motion.turn_right(speed)
+            if speed > 0:
+                self.motion.turn_right(speed)
+            else:
+                self.motion.turn_left(-speed)
+                
             time.sleep(0.01)
             
         self.motion.stop()
@@ -79,10 +80,9 @@ class Navigator:
         start_heading = self.magnetometer.get_heading()
         target_angle = 90.0
         
-        kp = 0.008
-        max_speed = 0.5
-        tolerance = 3.5
+        tolerance = 2.0
         
+        pid = PID()
         while True:
             current_heading = self.magnetometer.get_heading()
             turned = (start_heading - current_heading) % 360
@@ -91,13 +91,16 @@ class Navigator:
                 turned -= 360
                 
             error = target_angle - turned
-            if error <= tolerance:
+            if abs(error) <= tolerance:
                 break
                 
-            speed = kp * error
-            speed = max(0.0, min(max_speed, speed))
+            speed = pid.compute(error)
             
-            self.motion.turn_left(speed)
+            if speed > 0:
+                self.motion.turn_left(speed)
+            else:
+                self.motion.turn_right(-speed)
+                
             time.sleep(0.01)
             
         self.motion.stop()
