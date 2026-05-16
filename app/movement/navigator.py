@@ -4,6 +4,7 @@ import csv
 from hardware.motion import Motion
 from hardware.magnetometer import Magnetometer
 from movement.pid import PID
+from movement.pid import Proportional
 
 ONE_TILE_DURATION = 1.0  # seconds to move one tile at full speed, adjust as needed based on testing
 TURN_DURATION = 0.5  # seconds to turn 90 degrees at full speed, adjust as needed based on testing
@@ -56,7 +57,7 @@ class Navigator:
         
         tolerance = 2.0  # We can use a tighter tolerance now that it corrects itself
         
-        pid = PID(kp=0.015, ki=0.0005, kd=0.001)
+        pid = Proportional()
         while True:
             current_heading = self.magnetometer.get_heading()
             turned = (current_heading - start_heading) % 360
