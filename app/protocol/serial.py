@@ -67,11 +67,7 @@ class SerialCommunicator:
                 
     def _process_payload(self, payload: str):
         """Processes a complete payload received from the serial device."""
-        payload_lower = payload.lower()
-        if payload_lower.startswith("battery"):
-            match = re.search(r"[-+]?\d*\.\d+|\d+", payload_lower)
-            if match:
-                self.battery = float(match.group())
+        self.battery = float(payload) if payload else None
 
     def _send_current_command(self):
         """Sends the current command to the serial device."""
