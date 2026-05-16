@@ -88,11 +88,11 @@ class ScanController:
                 writer = csv.writer(f)
                 if not file_exists or os.path.getsize(log_file) == 0:
                     writer.writerow(["timestamp", "error", "linear_velocity", "angular_velocity"])
-                writer.writerow([time.time(), error, 0.3, angular_velocity])
+                writer.writerow([time.time(), error, 0.5, angular_velocity])
         except Exception as e:
             print(f"Error logging to CSV: {e}")
 
-        self.motion.send_velocity(0.3, angular_velocity)
+        self.motion.send_velocity(0.5, angular_velocity)
         
     def inspect(self):
         self.solenoid.tap()
