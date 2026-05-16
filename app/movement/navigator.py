@@ -45,7 +45,6 @@ class Navigator:
         
         # Proportional controller constants
         kp = 0.015       # Proportional gain
-        min_speed = 0.25 # Minimum speed to overcome friction
         max_speed = 0.5  # Maximum turning speed
         tolerance = 2.0  # Stop when within 2 degrees of target
         
@@ -61,9 +60,9 @@ class Navigator:
             if error <= tolerance:
                 break
                 
-            # Calculate speed based on remaining error and clamp it between min/max
+            # Calculate speed based on remaining error and clamp it to max_speed
             speed = kp * error
-            speed = max(min_speed, min(max_speed, speed))
+            speed = min(max_speed, speed)
             
             self.motion.turn_right(speed)
             time.sleep(0.01)
@@ -81,7 +80,6 @@ class Navigator:
         target_angle = 90.0
         
         kp = 0.015
-        min_speed = 0.25
         max_speed = 0.5
         tolerance = 2.0
         
@@ -97,7 +95,7 @@ class Navigator:
                 break
                 
             speed = kp * error
-            speed = max(min_speed, min(max_speed, speed))
+            speed = min(max_speed, speed)
             
             self.motion.turn_left(speed)
             time.sleep(0.01)
