@@ -64,7 +64,7 @@ class Camera:
                     h, w = frame.shape[:2]
                     fourcc = cv2.VideoWriter_fourcc(*'XVID')
                     # The step loop runs at roughly 10fps
-                    self.video_writer = cv2.VideoWriter(self.video_filename, fourcc, 10.0, (w, h))
+                    self.video_writer = cv2.VideoWriter(self.video_filename, fourcc, 30.0, (w, h))
                 # Convert RGB (from picamera2) to BGR (for OpenCV)
                 bgr_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
                 self.video_writer.write(bgr_frame)
