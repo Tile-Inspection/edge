@@ -123,43 +123,42 @@ def capture_tile_data(request: Request, body: TileDataRequest):
     base_name = f"tile_{body.tile_id}_{body.label}"
     img_filename = f"{base_name}.jpg"
     aud_filename = f"{base_name}.wav"
+    aud_long_filename = f"{base_name}_long.wav"
     
     # Capture the image
     scan_service.controller.camera.capture(img_filename)
     
-    start_time = time.perf_counter()
-
-    def wait_until(target_time):
-        while time.perf_counter() < target_time:
-            pass  # busy-wait for precise timing
-
-    def solenoid_sequence():
-        # 300 ms after start
-        wait_until(start_time + 0.3)
-        scan_service.controller.solenoid.tap()
-
-        # 1200 ms after start (NOT after previous tap)
-        wait_until(start_time + 1.8)
-        scan_service.controller.solenoid.tap(duration=0.3)
-
-    # Start recording immediately
+    # Start recording in a background thread to prevent blocking
     record_thread = threading.Thread(
         target=scan_service.controller.mic.record,
-        kwargs={"duration": 3.0, "filename": aud_filename}
+        kwargs={"duration": 1, "filename": aud_filename}
     )
     record_thread.start()
-
-    # Start solenoid timing in parallel (isolates blocking calls)
-    solenoid_thread = threading.Thread(target=solenoid_sequence)
-    solenoid_thread.start()
-
-    # Wait for both to finish
+    
+    # Wait 200ms (0.2 seconds), then tap the solenoid
+    time.sleep(0.2)
+    scan_service.controller.solenoid.tap()
+    
+    # Wait for the 1-second recording to finish before returning the response
     record_thread.join()
-    solenoid_thread.join()
+    
+    # Record long tap
+    record_thread = threading.Thread(
+        target=scan_service.controller.mic.record,
+        kwargs={"duration": 1, "filename": aud_long_filename}
+    )
+    record_thread.start()
+    
+    # Wait 200ms (0.2 seconds), then tap the solenoid
+    time.sleep(0.2)
+    scan_service.controller.solenoid.tap(duration=0.3)
+    
+    # Wait for the 1-second recording to finish before returning the response
+    record_thread.join()
     
     return {
         "status": "success", 
-        "message": f"Captured {base_name}.jpg and {base_name}.wav"
+        "message": f"Captured {base_name}.jpg and {base_name}.wav/{base_name}_long.wav"
     }
 
 @router.post("/velocity")
