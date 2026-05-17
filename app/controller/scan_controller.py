@@ -69,8 +69,9 @@ class ScanController:
             return
 
         self.navigator.forward_distance(speed=0.1, distance_meters=self.tile_size)
-        self.inspect()
         self.motion.stop()  # Stop after moving and inspecting
+        time.sleep(0.5)  # Small delay to ensure movement is completed before inspection
+        self.inspect()
         
     def start_scan_sequence(self, rows: int, cols: int):
         print(f"Starting scan sequence with {rows} rows and {cols} cols...")
@@ -84,8 +85,10 @@ class ScanController:
             # After each row, you can add logic to turn or reposition as needed
             if col < cols - 1:  # Don't turn after the last row
                 self.navigator.turn_right_90()
+                time.sleep(0.5)  # Small delay to ensure turn is completed
                 self.navigator.forward_distance(speed=0.1, distance_meters=self.tile_size)
                 self.navigator.turn_right_90()
+                time.sleep(0.5)  # Small delay to ensure turn is completed
         print("Completed scan sequence.")
 
     def follow_path_step(self):
