@@ -113,8 +113,8 @@ class Navigator:
         
     def forward_distance(self, speed, distance_meters):
         """Moves the robot forward a specific distance in meters."""
-        kp = 0.00 
-        max_angular = speed * 0.4  # Max angular velocity proportional to speed
+        kp = 0.1 
+        max_angular = speed * 0.8  # Max angular velocity proportional to speed
         
         ticks_per_meter = 187.5  # This should be calibrated based on the robot's wheel and encoder
         target_ticks = distance_meters * ticks_per_meter
