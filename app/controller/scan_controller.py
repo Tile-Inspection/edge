@@ -74,17 +74,17 @@ class ScanController:
         
     def start_scan_sequence(self, rows: int, cols: int):
         print(f"Starting scan sequence with {rows} rows and {cols} cols...")
-        for row in range(rows):
-            for col in range(cols):
+        for col in range(cols):
+            for row in range(rows):
                 if not self.is_running:
                     print("Scan sequence stopped.")
                     return
                 print(f"Scanning tile at row {row}, col {col}...")
                 self.step()
             # After each row, you can add logic to turn or reposition as needed
-            if row < rows - 1:  # Don't turn after the last row
+            if col < cols - 1:  # Don't turn after the last row
                 self.navigator.turn_right_90()
-                self.navigator.forward_distance(speed=0.5, distance_meters=self.tile_size)
+                self.navigator.forward_distance(speed=0.1, distance_meters=self.tile_size)
                 self.navigator.turn_right_90()
         print("Completed scan sequence.")
 
