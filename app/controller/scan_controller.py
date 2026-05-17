@@ -26,8 +26,8 @@ class ScanController:
         self.camera = Camera()
         self.mic = Microphone()
         self.magnetometer = Magnetometer()
-        self.left_encoder = WheelEncoder(pin=13, vcc_pin=16)
-        self.right_encoder = WheelEncoder(pin=5, vcc_pin=12)
+        self.left_encoder = WheelEncoder(pin=13, vcc_pin=12)
+        self.right_encoder = WheelEncoder(pin=5, vcc_pin=7)
         self.navigator = Navigator(self.motion, self.magnetometer)
 
         self.alignment = Alignment(self.camera)
