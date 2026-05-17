@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from services.scan_service import ScanService
 from db.database import get_db
@@ -10,6 +10,9 @@ class CreateScanRequest(BaseModel):
     
 class StartScanRequest(BaseModel):
     scanId: int
+    tileSize: float = Field(0.3, gt=0)  # Tile size in meters (e.g., 0.3 for 30cm)
+    rows: int = Field(3, gt=0)  # Number of rows to scan
+    cols: int = Field(2, gt=0)  # Number of cols to scan
 
 router = APIRouter()
 
@@ -81,7 +84,7 @@ def createScan(request: CreateScanRequest):
 @router.post("/start-scan")
 def startScan(request: Request, body: StartScanRequest):
     scan_service: ScanService = request.app.state.scan_service
-    scan_service.start_scan(body.scanId)
+    scan_service.start_scan(body.scanId, rows=body.rows, cols=body.cols, tile_size=body.tileSize)
     return {"status": "started"}
     
 @router.post("/stop-scan")

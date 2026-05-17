@@ -95,6 +95,9 @@
             <div>
                 <label>Scan ID:</label><br>
                 <input type="number" id="scan-id-input" value="1" min="1">
+                <br><br>
+                <label>Tile Size (m):</label><br>
+                <input type="number" id="tile-size-input" value="0.3" step="0.1" min="0.3"><br><br>
                 <button onclick="startScan()">Start Scan</button>
                 <button onclick="stopScan()">Stop Scan</button>
                 <button onclick="capture()">Capture Image</button>
@@ -178,6 +181,7 @@
         const linearInput = document.getElementById('linear-input');
         const angularInput = document.getElementById('angular-input');
         const scanIdInput = document.getElementById('scan-id-input');
+        const tileSizeInput = document.getElementById('tile-size-input');
         const isRunningDisplay = document.getElementById('is-running');
         const currentScanIdDisplay = document.getElementById('current-scan-id');
 
@@ -262,10 +266,11 @@
         async function startScan() {
             try {
                 const scanId = parseInt(scanIdInput.value) || 1;
+                const tileSize = parseFloat(tileSizeInput.value) || 0.3;
                 const response = await fetch('/start-scan', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ scanId })
+                    body: JSON.stringify({ scanId, tileSize })
                 });
                 const data = await response.json();
                 statusMessage.textContent = 'Status: ' + data.status;

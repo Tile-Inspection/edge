@@ -35,6 +35,7 @@ class ScanController:
 
         self.is_running = False
         self.is_following_path = False   
+        self.tile_size = 0.3  # Default tile size in meters
 
     def start_forward_path(self):
         """Initiates a simple forward path using the camera feed."""
@@ -50,14 +51,16 @@ class ScanController:
         self.motion.send_velocity(0.0, 0.0)
         print("Stopped forward path.")
 
-    def start(self):
-        self.start_forward_path()
+    def start(self, rows: int, cols: int, tile_size: float):
+        self.tile_size = tile_size
+        self.start_scan_sequence(rows, cols)
+        # self.start_forward_path()
         self.is_running = True
         print("ScanController is running...")
 
     def stop(self):
         self.is_running = False
-        self.stop_forward_path()
+        # self.stop_forward_path()
         print("ScanController is stopped...")
         
     def step(self):
@@ -65,14 +68,25 @@ class ScanController:
             self.follow_path_step()
             return
 
-        if self.sensors.is_wall_ahead():
-            self.navigator.handle_wall()
-            self.motion.stop()  # Stop after handling wall
-            return
-
-        self.motion.move_forward_tile()
+        self.navigator.forward_distance(speed=0.1, distance_meters=self.tile_size)
         self.inspect()
         self.motion.stop()  # Stop after moving and inspecting
+        
+    def start_scan_sequence(self, rows: int, cols: int):
+        print(f"Starting scan sequence with {rows} rows and {cols} cols...")
+        for row in range(rows):
+            for col in range(cols):
+                if not self.is_running:
+                    print("Scan sequence stopped.")
+                    return
+                print(f"Scanning tile at row {row}, col {col}...")
+                self.step()
+            # After each row, you can add logic to turn or reposition as needed
+            if row < rows - 1:  # Don't turn after the last row
+                self.navigator.turn_right_90()
+                self.navigator.forward_distance(speed=0.5, distance_meters=self.tile_size)
+                self.navigator.turn_right_90()
+        print("Completed scan sequence.")
 
     def follow_path_step(self):
         error = self.alignment.get_error()
@@ -99,8 +113,7 @@ class ScanController:
         
     def inspect(self):
         self.solenoid.tap()
-        audio = self.mic.record()
+        # audio = self.mic.record()
         image = self.camera.capture()
 
-        print(f"Processing {audio}, {image}")
-        
+        print(f"Processing {image}")

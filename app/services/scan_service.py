@@ -8,10 +8,10 @@ class ScanService:
         self.controller = controller
         self.current_scan_id = None
 
-    def start_scan(self, scan_id: int):
+    def start_scan(self, scan_id: int, rows: int, cols: int, tile_size: float):
         if not self.controller.is_running:
             self.current_scan_id = scan_id
-            self.controller.start()
+            self.controller.start(rows, cols, tile_size)
 
     def stop_scan(self):
         if self.controller.is_running:
