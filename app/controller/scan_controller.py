@@ -53,9 +53,9 @@ class ScanController:
 
     def start(self, rows: int, cols: int, tile_size: float):
         self.tile_size = tile_size
+        self.is_running = True
         self.start_scan_sequence(rows, cols)
         # self.start_forward_path()
-        self.is_running = True
         print("ScanController is running...")
 
     def stop(self):
