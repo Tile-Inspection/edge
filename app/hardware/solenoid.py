@@ -7,7 +7,7 @@ except ImportError:
     GPIO_AVAILABLE = False
 
 class Solenoid:
-    def __init__(self, pin=23):
+    def __init__(self, pin=24):
         self.pin = pin
         if GPIO_AVAILABLE:
             GPIO.setwarnings(False)
