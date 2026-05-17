@@ -1,6 +1,7 @@
 import time
 import csv
 
+from hardware.encoder import WheelEncoder
 from hardware.motion import Motion
 from hardware.magnetometer import Magnetometer
 from movement.pid import PID
@@ -10,9 +11,11 @@ ONE_TILE_DURATION = 1.0  # seconds to move one tile at full speed, adjust as nee
 TURN_DURATION = 0.5  # seconds to turn 90 degrees at full speed, adjust as needed based on testing
 
 class Navigator:
-    def __init__(self, motion: Motion, magnetometer: Magnetometer):
+    def __init__(self, motion: Motion, magnetometer: Magnetometer, left_encoder: WheelEncoder, right_encoder: WheelEncoder):
         self.motion = motion
         self.magnetometer = magnetometer
+        self.left_encoder = left_encoder
+        self.right_encoder = right_encoder
         self.turn_right_next = True  # alternate turns
         
     def move_forward_tile(self):
@@ -107,6 +110,44 @@ class Navigator:
             time.sleep(0.01)
             
         self.motion.stop()
+        
+    def forward_distance(self, speed, distance_meters):
+        """Moves the robot forward a specific distance in meters."""
+        kp = 0.00 
+        max_angular = speed * 0.4  # Max angular velocity proportional to speed
+        
+        ticks_per_meter = 187.5  # This should be calibrated based on the robot's wheel and encoder
+        target_ticks = distance_meters * ticks_per_meter
+        
+        self.left_encoder.reset()
+        self.right_encoder.reset()
+                
+        while True:
+            left_ticks = self.left_encoder.get_ticks()
+            right_ticks = self.right_encoder.get_ticks()
+            
+            avg_ticks = (left_ticks + right_ticks) / 2.0
+            
+            if avg_ticks >= target_ticks:
+                break
+                
+            # If left wheel has more ticks than right, the robot is veering right.
+            # We want to turn left (angular < 0 in motion.py).
+            # error will be negative if left > right.
+            error = right_ticks - left_ticks
+            angular_velocity = error * kp
+            
+            # Clamp angular velocity to prevent wild swinging
+            angular_velocity = max(-max_angular, min(max_angular, angular_velocity))
+            
+            self.motion.send_velocity(speed, angular_velocity)
+            
+            time.sleep(0.02)
+            
+        self.motion.stop()
+        
+        return self.left_encoder.get_ticks(), self.right_encoder.get_ticks()
+        
 
     ## [START] TESTING/CALIBRATION FUNCTIONS
     def forward(self, speed, duration):

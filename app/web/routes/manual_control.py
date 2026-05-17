@@ -37,7 +37,7 @@ class RecordVideoRequest(BaseModel):
     filename: str | None = None
 
 class EncoderTestRequest(BaseModel):
-    pulses: int = Field(..., gt=0)
+    distance: float = Field(..., gt=0)
     speed: float = Field(0.5, gt=0, le=1)
 
 router = APIRouter()
@@ -127,14 +127,14 @@ def test_encoder(request: Request, body: EncoderTestRequest):
     controller = scan_service.controller
     
     # Run the auto-run logic which uses both encoders and keeps the robot straight
-    left_ticks, right_ticks = controller.encoder_logic.move_forward_pulses(
-        target_pulses=body.pulses, 
-        base_speed=body.speed
+    left_ticks, right_ticks = controller.navigator.forward_distance(
+        speed=body.speed, 
+        distance_meters=body.distance
     )
     
     return {
         "status": "success", 
-        "message": f"Encoder test completed. Target: {body.pulses}, Left: {left_ticks}, Right: {right_ticks}"
+        "message": f"Encoder test completed. Target: {body.distance}, Left: {left_ticks}, Right: {right_ticks}"
     }
 
 @router.post("/capture-tile-data")
