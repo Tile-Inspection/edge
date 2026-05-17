@@ -7,7 +7,7 @@ class EncoderAutoRun:
         self.right_encoder = right_encoder
         
         # Proportional gain to keep wheels synchronized
-        self.kp = 0.05 
+        self.kp = 0.00 
 
     def move_forward_pulses(self, target_pulses: int, base_speed: float = 0.5, timeout: float = 15.0):
         """
