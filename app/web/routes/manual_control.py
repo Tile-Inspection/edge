@@ -127,19 +127,35 @@ def capture_tile_data(request: Request, body: TileDataRequest):
     # Capture the image
     scan_service.controller.camera.capture(img_filename)
     
-    # Start recording in a background thread to prevent blocking
+    start_time = time.perf_counter()
+
+    def wait_until(target_time):
+        while time.perf_counter() < target_time:
+            pass  # busy-wait for precise timing
+
+    def solenoid_sequence():
+        # 300 ms after start
+        wait_until(start_time + 0.3)
+        scan_service.controller.solenoid.tap()
+
+        # 1200 ms after start (NOT after previous tap)
+        wait_until(start_time + 1.8)
+        scan_service.controller.solenoid.tap(duration=0.3)
+
+    # Start recording immediately
     record_thread = threading.Thread(
         target=scan_service.controller.mic.record,
-        kwargs={"duration": 1, "filename": aud_filename}
+        kwargs={"duration": 3.0, "filename": aud_filename}
     )
     record_thread.start()
-    
-    # Wait 300ms (0.3 seconds), then tap the solenoid
-    time.sleep(0.3)
-    scan_service.controller.solenoid.tap()
-    
-    # Wait for the 1-second recording to finish before returning the response
+
+    # Start solenoid timing in parallel (isolates blocking calls)
+    solenoid_thread = threading.Thread(target=solenoid_sequence)
+    solenoid_thread.start()
+
+    # Wait for both to finish
     record_thread.join()
+    solenoid_thread.join()
     
     return {
         "status": "success", 
