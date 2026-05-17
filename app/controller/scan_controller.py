@@ -39,7 +39,7 @@ class ScanController:
 
     def start_forward_path(self):
         """Initiates a simple forward path using the camera feed."""
-        self.is_following_path = True
+        # self.is_following_path = True
         self.pid.integral = 0
         self.pid.prev_error = 0
         self.motion.send_velocity(0.5, 0.0)
@@ -47,7 +47,7 @@ class ScanController:
 
     def stop_forward_path(self):
         """Stops the forward path mode."""
-        self.is_following_path = False
+        # self.is_following_path = False
         self.motion.send_velocity(0.0, 0.0)
         print("Stopped forward path.")
 
