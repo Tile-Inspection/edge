@@ -1,7 +1,7 @@
 import time
 
 try:
-    import RPi.GPIO as GPIO
+    from gpiozero import DigitalInputDevice, OutputDevice
     GPIO_AVAILABLE = True
 except ImportError:
     GPIO_AVAILABLE = False
@@ -19,23 +19,20 @@ class WheelEncoder:
         self.vcc_pin = vcc_pin
         
         if GPIO_AVAILABLE:
-            GPIO.setwarnings(False)
-            GPIO.setmode(GPIO.BCM)
-            
             if self.vcc_pin is not None:
-                GPIO.setup(self.vcc_pin, GPIO.OUT)
-                GPIO.output(self.vcc_pin, GPIO.HIGH)
+                self._vcc = OutputDevice(self.vcc_pin)
+                self._vcc.on()
                 print(f"Wheel Encoder VCC powered via GPIO {self.vcc_pin}.")
                 
-            # Configure pin as an input with an internal pull-up resistor
-            GPIO.setup(self.pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            # Trigger the callback on both rising and falling edges (can be changed to GPIO.RISING or GPIO.FALLING)
-            GPIO.add_event_detect(self.pin, GPIO.BOTH, callback=self._tick_callback, bouncetime=bouncetime)
+            # gpiozero uses seconds for bounce_time; pull_up=True enables internal pull-up resistor
+            self._encoder = DigitalInputDevice(self.pin, pull_up=True, bounce_time=bouncetime / 1000.0)
+            self._encoder.when_activated = self._tick_callback
+            self._encoder.when_deactivated = self._tick_callback
             print(f"Wheel Encoder initialized on GPIO {self.pin}.")
         else:
             print(f"RPi.GPIO not available. Wheel Encoder on pin {self.pin} will be simulated.")
 
-    def _tick_callback(self, channel):
+    def _tick_callback(self):
         """Callback function automatically triggered by a hardware interrupt."""
         self.ticks += 1
 
