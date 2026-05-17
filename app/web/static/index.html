@@ -148,6 +148,17 @@
         </div>
 
         <div class="section">
+            <h2>Encoder Calibration</h2>
+            <div>
+                <label>Target Pulses (e.g., 20 for full revolution):</label><br>
+                <input type="number" id="test-pulses" value="20" min="1"><br><br>
+                <label>Speed (0.0 - 1.0):</label><br>
+                <input type="number" id="encoder-speed" value="0.5" step="0.1" min="0" max="1"><br><br>
+                <button onclick="testEncoder()">Test Wheel Encoder</button>
+            </div>
+        </div>
+
+        <div class="section">
             <h2>Data Collection</h2>
             <div>
                 <label>Tile ID (Auto-increments):</label><br>
@@ -382,6 +393,32 @@
                 statusMessage.textContent = 'Test move status: ' + data.message;
             } catch (error) {
                 statusMessage.textContent = 'Error executing test move.';
+                console.error('Error:', error);
+            }
+        }
+
+        async function testEncoder() {
+            const pulses = parseInt(document.getElementById('test-pulses').value) || 20;
+            const speed = parseFloat(document.getElementById('encoder-speed').value) || 0.5;
+
+            statusMessage.textContent = 'Running encoder test for ' + pulses + ' pulses...';
+
+            try {
+                const response = await fetch('/test-encoder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pulses, speed })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusMessage.textContent = 'Encoder Test: ' + data.message;
+                } else {
+                    statusMessage.textContent = 'Encoder Test Error: ' + (data.detail || 'Failed');
+                }
+            } catch (error) {
+                statusMessage.textContent = 'Error testing encoder.';
                 console.error('Error:', error);
             }
         }

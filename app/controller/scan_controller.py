@@ -14,6 +14,7 @@ from hardware.camera import Camera
 from hardware.microphone import Microphone
 from protocol.serial import SerialCommunicator
 from movement.navigator import Navigator
+from movement.encoder_logic import EncoderAutoRun
 
 class ScanController:
     def __init__(self):
@@ -28,6 +29,7 @@ class ScanController:
         self.magnetometer = Magnetometer()
         self.left_encoder = WheelEncoder(pin=13, vcc_pin=12)
         self.right_encoder = WheelEncoder(pin=5, vcc_pin=7)
+        self.encoder_logic = EncoderAutoRun(self.motion, self.left_encoder, self.right_encoder)
         self.navigator = Navigator(self.motion, self.magnetometer)
 
         self.alignment = Alignment(self.camera)
