@@ -22,8 +22,8 @@ if __name__ == "__main__":
         time.sleep(1)
         
         while True:
-            if controller.is_running:
-                controller.step()
+            # if controller.is_running:
+            #     controller.step()
             time.sleep(0.1)
     except KeyboardInterrupt:
         print("Shutting down...")
