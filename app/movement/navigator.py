@@ -134,7 +134,7 @@ class Navigator:
             # If left wheel has more ticks than right, the robot is veering right.
             # We want to turn left (angular < 0 in motion.py).
             # error will be negative if left > right.
-            error = right_ticks - left_ticks
+            error = left_ticks - right_ticks
             angular_velocity = error * kp
             
             # Clamp angular velocity to prevent wild swinging
