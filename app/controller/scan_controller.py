@@ -2,6 +2,7 @@ import csv
 import os
 import time
 
+from hardware.encoder import WheelEncoder
 from hardware.magnetometer import Magnetometer
 from movement.alignment import Alignment
 from hardware.servo import SprayerServo
@@ -25,6 +26,8 @@ class ScanController:
         self.camera = Camera()
         self.mic = Microphone()
         self.magnetometer = Magnetometer()
+        self.left_encoder = WheelEncoder(pin=16, vcc_pin=13)
+        self.right_encoder = WheelEncoder(pin=1, vcc_pin=5)
         self.navigator = Navigator(self.motion, self.magnetometer)
 
         self.alignment = Alignment(self.camera)
