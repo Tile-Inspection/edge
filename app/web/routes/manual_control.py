@@ -7,6 +7,7 @@ from fastapi import APIRouter, Request, HTTPException
 from pydantic import BaseModel, Field
 
 from services.scan_service import ScanService
+# pyrefly: ignore [missing-import]
 from navigation.analyze import read_frame, analyze, Line
 from constants import X_DIM, Y_DIM
 
@@ -34,6 +35,10 @@ class TileDataRequest(BaseModel):
 class RecordVideoRequest(BaseModel):
     duration: float = Field(5.0, gt=0)
     filename: str | None = None
+
+class EncoderTestRequest(BaseModel):
+    distance: float = Field(..., gt=0)
+    speed: float = Field(0.5, gt=0, le=1)
 
 router = APIRouter()
 
@@ -115,6 +120,22 @@ def record_video_endpoint(request: Request, body: RecordVideoRequest):
     record_thread.start()
     
     return {"status": "success", "message": f"Started recording video for {body.duration} seconds"}
+
+@router.post("/test-encoder")
+def test_encoder(request: Request, body: EncoderTestRequest):
+    scan_service: ScanService = request.app.state.scan_service
+    controller = scan_service.controller
+    
+    # Run the auto-run logic which uses both encoders and keeps the robot straight
+    left_ticks, right_ticks = controller.navigator.forward_distance(
+        speed=body.speed, 
+        distance_meters=body.distance
+    )
+    
+    return {
+        "status": "success", 
+        "message": f"Encoder test completed. Target: {body.distance}, Left: {left_ticks}, Right: {right_ticks}"
+    }
 
 @router.post("/capture-tile-data")
 def capture_tile_data(request: Request, body: TileDataRequest):
