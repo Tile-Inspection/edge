@@ -11,6 +11,8 @@ from services.scan_service import ScanService
 from navigation.analyze import read_frame, analyze, Line
 from constants import X_DIM, Y_DIM
 
+from deployment.inference import predict_wav
+
 class ControlRequest(BaseModel):
     action: str
     direction: str | None = None
@@ -107,6 +109,35 @@ def record_audio(request: Request):
     # Records 1 second of audio and saves it as sound.wav
     filename = scan_service.controller.mic.record(duration=1, filename="sound.wav")
     return {"filename": filename}
+
+def predict_audio(filename: str) -> str:
+    # Placeholder function for audio classification
+    print(f"Predicting audio for {filename}...")
+    predict_wav(filename)
+    return "placeholder_tile_class"
+
+@router.post("/record-classify")
+def record_classify(request: Request):
+    scan_service: ScanService = request.app.state.scan_service
+    
+    filename = "classify_sound.wav"
+    
+    # Start recording in a background thread to prevent blocking
+    record_thread = threading.Thread(
+        target=scan_service.controller.mic.record,
+        kwargs={"duration": 1.0, "filename": filename}
+    )
+    record_thread.start()
+    
+    # Wait 300ms (0.3 seconds), then tap the solenoid while recording
+    time.sleep(0.3)
+    scan_service.controller.solenoid.tap(duration=0.3)
+    
+    # Wait for the recording to finish, then classify
+    record_thread.join()
+    prediction = predict_audio(filename)
+    
+    return {"status": "success", "filename": filename, "prediction": prediction}
 
 @router.post("/record-video")
 def record_video_endpoint(request: Request, body: RecordVideoRequest):

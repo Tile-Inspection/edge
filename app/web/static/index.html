@@ -71,6 +71,9 @@
 
     <div class="container">
         <div class="section">
+            <button id="record-classify-btn" onclick="recordAndClassify()">Record & Classify</button>
+            <span id="prediction-result" style="margin-left: 10px; font-weight: bold;"></span>
+
             <h2>Manual Control</h2>
 
             <div class="keyboard-info">
@@ -526,6 +529,37 @@
                 }
             } catch (error) {
                 console.error("Network or fetch error:", error);
+            }
+        }
+
+        async function recordAndClassify() {
+            const btn = document.getElementById('record-classify-btn');
+            const resultSpan = document.getElementById('prediction-result');
+
+            btn.disabled = true;
+            resultSpan.innerText = "Recording and predicting...";
+
+            try {
+                // Adjust the route prefix if your router is mounted differently (e.g., '/api/record-classify')
+                const response = await fetch('/record-classify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    resultSpan.innerText = `Prediction: ${data.prediction} (Saved as ${data.filename})`;
+                } else {
+                    resultSpan.innerText = `Error: ${data.detail || 'Failed to classify'}`;
+                }
+            } catch (error) {
+                console.error('Error calling record-classify:', error);
+                resultSpan.innerText = "Network error occurred.";
+            } finally {
+                btn.disabled = false;
             }
         }
 
