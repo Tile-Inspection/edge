@@ -19,7 +19,7 @@ class SerialCommunicator:
             print(f"Error initializing serial port: {e}")
             self.ser = None
         
-        self._current_command = None
+        self._current_command = b'<0,0>'
         self.sending_thread = None
         self.receiving_thread = None
         self.battery = None
