@@ -150,6 +150,7 @@
                 <button onclick="testMove('left')">Test Left</button>
                 <button onclick="testMove('right')">Test Right</button>
                 <button onclick="testVision()">Test Vision Processing</button>
+                <button onclick="calibrateMagnetometer()">Calibrate Magnetometer (15s)</button>
             </div>
         </div>
 
@@ -560,6 +561,29 @@
                 resultSpan.innerText = "Network error occurred.";
             } finally {
                 btn.disabled = false;
+            }
+        }
+
+        async function calibrateMagnetometer() {
+            statusMessage.textContent = 'Starting magnetometer calibration for 15 seconds...';
+
+            try {
+                const response = await fetch('/calibrate-magnetometer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    // Hardcoding a 15-second spin duration at 0.5 speed
+                    body: JSON.stringify({ duration: 15.0, spin_speed: 0.5 })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusMessage.textContent = data.message;
+                } else {
+                    statusMessage.textContent = 'Calibration Error: ' + (data.detail || 'Failed');
+                }
+            } catch (error) {
+                statusMessage.textContent = 'Error triggering calibration.';
+                console.error('Error:', error);
             }
         }
 

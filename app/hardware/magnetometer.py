@@ -1,11 +1,15 @@
 import math
 import time
+import json
+import os
 
 try:
     import smbus
     SMBUS_AVAILABLE = True
 except ImportError:
     SMBUS_AVAILABLE = False
+
+CALIBRATION_FILE = os.path.join(os.path.dirname(__file__), "magnetometer_cal.json")
 
 class Magnetometer:
     """
@@ -21,6 +25,8 @@ class Magnetometer:
         self.scale_y = scale_y
         self.declination_rad = declination_rad
         
+        self._load_calibration()
+        
         if SMBUS_AVAILABLE:
             try:
                 self.bus = smbus.SMBus(self.bus_num)
@@ -33,6 +39,35 @@ class Magnetometer:
         else:
             self.bus = None
             print("smbus not available. Magnetometer will be simulated.")
+
+    def _load_calibration(self):
+        """Loads offset and scale values from a local file if it exists."""
+        if os.path.exists(CALIBRATION_FILE):
+            try:
+                with open(CALIBRATION_FILE, 'r') as f:
+                    data = json.load(f)
+                    self.offset_x = data.get('offset_x', self.offset_x)
+                    self.offset_y = data.get('offset_y', self.offset_y)
+                    self.scale_x = data.get('scale_x', self.scale_x)
+                    self.scale_y = data.get('scale_y', self.scale_y)
+                print("Loaded magnetometer calibration data.")
+            except Exception as e:
+                print(f"Failed to load calibration data: {e}")
+                
+    def _save_calibration(self):
+        """Saves current offset and scale values to a local file."""
+        data = {
+            'offset_x': self.offset_x,
+            'offset_y': self.offset_y,
+            'scale_x': self.scale_x,
+            'scale_y': self.scale_y
+        }
+        try:
+            with open(CALIBRATION_FILE, 'w') as f:
+                json.dump(data, f)
+            print("Saved magnetometer calibration data.")
+        except Exception as e:
+            print(f"Failed to save calibration data: {e}")
 
     def _initialize_sensor(self):
         """Configures the sensor for continuous measurement mode."""
@@ -48,20 +83,17 @@ class Magnetometer:
                 # Continuous measurement, 200Hz data rate, 8G range, 512 Over Sampling Ratio
                 self.bus.write_byte_data(self.address, 0x09, 0x1D)
 
-    def get_heading(self) -> float:
-        """Reads X and Y axis values and calculates the heading in degrees."""
+    def _get_raw_xy(self):
+        """Reads raw, uncalibrated X and Y axis values from the sensor."""
         if not self.bus:
-            return 0.0  # Return simulated heading if hardware unavailable
-
+            return 0, 0
+            
         try:
             if self.address == 0x1E:
-                # HMC5883L registers: X_MSB=0x03 to Y_LSB=0x08 (Big Endian)
-                # You MUST read all 6 bytes sequentially to unlock the data registers for the next reading.
                 data = self.bus.read_i2c_block_data(self.address, 0x03, 6)
                 x = (data[0] << 8) | data[1]
                 y = (data[4] << 8) | data[5]
             else:
-                # QMC5883L registers: X_LSB=0x00 to Z_MSB=0x05 (Little Endian)
                 data = self.bus.read_i2c_block_data(self.address, 0x00, 6)
                 x = (data[1] << 8) | data[0]
                 y = (data[3] << 8) | data[2]
@@ -69,6 +101,18 @@ class Magnetometer:
             # Convert unsigned 16-bit values to signed 16-bit integers
             x = x - 65536 if x >= 32768 else x
             y = y - 65536 if y >= 32768 else y
+            return x, y
+        except Exception as e:
+            print(f"Error reading raw magnetometer data: {e}")
+            return 0, 0
+
+    def get_heading(self) -> float:
+        """Reads X and Y axis values and calculates the heading in degrees."""
+        if not self.bus:
+            return 0.0  # Return simulated heading if hardware unavailable
+
+        try:
+            x, y = self._get_raw_xy()
 
             # Apply Hard Iron Offset (Shift to center)
             shifted_x = x - self.offset_x
@@ -91,3 +135,46 @@ class Magnetometer:
         except Exception as e:
             print(f"Error reading magnetometer heading: {e}")
             return 0.0
+            
+    def calibrate(self, motion_controller, duration=15.0, spin_speed=0.5):
+        """
+        Spins the robot in place to collect min and max readings for X and Y,
+        calculates hard and soft iron offsets, and saves them locally.
+        """
+        if not self.bus:
+            print("Cannot calibrate: Magnetometer hardware is not available.")
+            return
+            
+        print(f"Starting magnetometer calibration for {duration} seconds. Ensure area is clear...")
+        motion_controller.turn_right(spin_speed)
+        
+        min_x, max_x = float('inf'), float('-inf')
+        min_y, max_y = float('inf'), float('-inf')
+        
+        start_time = time.time()
+        while time.time() - start_time < duration:
+            x, y = self._get_raw_xy()
+            min_x = min(min_x, x)
+            max_x = max(max_x, x)
+            min_y = min(min_y, y)
+            max_y = max(max_y, y)
+            time.sleep(0.05)
+            
+        motion_controller.stop()
+        
+        # Calculate Hard Iron offsets (Center of the sphere/ellipse)
+        self.offset_x = (max_x + min_x) / 2
+        self.offset_y = (max_y + min_y) / 2
+        
+        # Calculate Soft Iron scale (Rescaling the ellipse into a circle)
+        avg_delta_x = (max_x - min_x) / 2
+        avg_delta_y = (max_y - min_y) / 2
+        avg_delta = (avg_delta_x + avg_delta_y) / 2
+        
+        self.scale_x = avg_delta / avg_delta_x if avg_delta_x != 0 else 1.0
+        self.scale_y = avg_delta / avg_delta_y if avg_delta_y != 0 else 1.0
+        
+        print(f"Calibration complete. Offsets: x={self.offset_x:.2f}, y={self.offset_y:.2f}")
+        print(f"Scales: x={self.scale_x:.4f}, y={self.scale_y:.4f}")
+        
+        self._save_calibration()

@@ -42,6 +42,10 @@ class EncoderTestRequest(BaseModel):
     distance: float = Field(..., gt=0)
     speed: float = Field(0.5, gt=0, le=1)
 
+class CalibrateMagnetometerRequest(BaseModel):
+    duration: float = Field(15.0, gt=0)
+    spin_speed: float = Field(0.5, gt=0, le=1)
+
 router = APIRouter()
 
 @router.post("/control")
@@ -278,3 +282,20 @@ def get_battery(request: Request):
         "status": "success", 
         "battery": scan_service.controller.serial_communicator.battery
     }
+
+@router.post("/calibrate-magnetometer")
+def calibrate_magnetometer(request: Request, body: CalibrateMagnetometerRequest):
+    scan_service: ScanService = request.app.state.scan_service
+    
+    # Start calibration in a background thread to prevent blocking the API
+    cal_thread = threading.Thread(
+        target=scan_service.controller.magnetometer.calibrate,
+        kwargs={
+            "motion_controller": scan_service.controller.motion,
+            "duration": body.duration,
+            "spin_speed": body.spin_speed
+        }
+    )
+    cal_thread.start()
+    
+    return {"status": "success", "message": f"Started magnetometer calibration for {body.duration} seconds"}
