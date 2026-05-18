@@ -12,6 +12,11 @@ class Motion:
     
     def send_velocity(self, linear: float, angular: float):
         """Updates the current command using the new velocity protocol."""
+        
+        # Scale values to be between -0.3 and 0.3
+        linear = max(-0.3, min(0.3, linear))
+        angular = max(-0.3, min(0.3, angular))
+        
         self.serial.set_command(self._format_velocity_command(linear, angular))
         
     def stop(self):
