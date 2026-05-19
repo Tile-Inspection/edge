@@ -121,7 +121,7 @@ def predict_audio(filename: str) -> str:
 def record_classify(request: Request):
     scan_service: ScanService = request.app.state.scan_service
     
-    filename = "/home/admin/Documents/GitHub/edge/app/web/static/classify_sound.wav"
+    filename = "classify_sound.wav"
     
     # Start recording in a background thread to prevent blocking
     record_thread = threading.Thread(
