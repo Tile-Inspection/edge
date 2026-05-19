@@ -124,9 +124,9 @@ class Navigator:
         """Moves the robot forward a specific distance in meters, gradually applying a steering correction."""
         
         print(f'steer_cmd_degrees {steer_cmd_degrees}')
-        if steer_cmd_degrees == 0.0:
-            print(f'Calculating steer_cmd_degrees')
-            steer_cmd_degrees = self.alignment.get_steer_cmd_degrees() * -1
+        # if steer_cmd_degrees == 0.0:
+        #     print(f'Calculating steer_cmd_degrees')
+            # steer_cmd_degrees = self.alignment.get_steer_cmd_degrees() * -1
                 
         kp = 0.1
         max_angular = speed * 0.8  # Max angular velocity proportional to speed
