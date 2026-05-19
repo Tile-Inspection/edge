@@ -114,8 +114,8 @@ def record_audio(request: Request):
 def predict_audio(filename: str) -> str:
     # Placeholder function for audio classification
     print(f"Predicting audio for {filename}...")
-    classify_live_tap(filename)
-    return "placeholder_tile_class"
+    pred = classify_live_tap(filename)
+    return pred
 
 @router.post("/record-classify")
 def record_classify(request: Request):
