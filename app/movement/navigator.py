@@ -6,6 +6,7 @@ import math
 
 import csv
 
+from movement.alignment import Alignment
 from hardware.encoder import WheelEncoder
 from hardware.motion import Motion
 from hardware.mpu6050 import MPU6050
@@ -16,11 +17,12 @@ ONE_TILE_DURATION = 1.0  # seconds to move one tile at full speed, adjust as nee
 TURN_DURATION = 0.5  # seconds to turn 90 degrees at full speed, adjust as needed based on testing
 
 class Navigator:
-    def __init__(self, motion: Motion, mpu6050: MPU6050, left_encoder: WheelEncoder, right_encoder: WheelEncoder):
+    def __init__(self, motion: Motion, mpu6050: MPU6050, left_encoder: WheelEncoder, right_encoder: WheelEncoder, alignment: Alignment):
         self.motion = motion
         self.mpu6050 = mpu6050
         self.left_encoder = left_encoder
         self.right_encoder = right_encoder
+        self.alignment = alignment
         self.turn_right_next = True  # alternate turns
         
     def move_forward_tile(self):
@@ -122,7 +124,7 @@ class Navigator:
         """Moves the robot forward a specific distance in meters, gradually applying a steering correction."""
         
         if steer_cmd_degrees == 0.0:
-            steer_cmd_degrees = self.alignment.get_steer_cmd_degrees()
+            steer_cmd_degrees = self.alignment.get_steer_cmd_degrees() * -1
                 
         kp = 0.1
         max_angular = speed * 0.8  # Max angular velocity proportional to speed

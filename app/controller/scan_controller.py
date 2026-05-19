@@ -28,9 +28,9 @@ class ScanController:
         self.mpu6050 = MPU6050()
         self.left_encoder = WheelEncoder(pin=13, vcc_pin=12)
         self.right_encoder = WheelEncoder(pin=5, vcc_pin=7)
-        self.navigator = Navigator(self.motion, self.mpu6050, self.left_encoder, self.right_encoder)
-
         self.alignment = Alignment(self.camera)
+        self.navigator = Navigator(self.motion, self.mpu6050, self.left_encoder, self.right_encoder, self.alignment)
+
         self.pid = PID()
 
         self.is_running = False
