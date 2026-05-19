@@ -101,6 +101,7 @@ class ScanController:
                 time.sleep(0.5)  # Small delay to ensure turn is completed
                 self.inspect()
                 time.sleep(0.5)
+        self.is_running = False
         print("Completed scan sequence.")
 
     def follow_path_step(self):
