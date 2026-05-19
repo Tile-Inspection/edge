@@ -11,7 +11,7 @@ from services.scan_service import ScanService
 from navigation.analyze import read_frame, analyze, Line
 from constants import X_DIM, Y_DIM
 
-from deployment.inference import predict_wav
+from deployment.inference import classify_live_tap
 
 class ControlRequest(BaseModel):
     action: str
@@ -114,7 +114,7 @@ def record_audio(request: Request):
 def predict_audio(filename: str) -> str:
     # Placeholder function for audio classification
     print(f"Predicting audio for {filename}...")
-    predict_wav(filename)
+    classify_live_tap(filename)
     return "placeholder_tile_class"
 
 @router.post("/record-classify")
