@@ -68,7 +68,7 @@ class ScanController:
             self.follow_path_step()
             return
 
-        self.navigator.forward_distance(speed=0.1, distance_meters=self.tile_size)
+        self.navigator.forward_distance(speed=1, distance_meters=self.tile_size)
         self.motion.stop()  # Stop after moving and inspecting
         time.sleep(0.5)  # Small delay to ensure movement is completed before inspection
         self.inspect()
@@ -93,18 +93,18 @@ class ScanController:
                 else:
                     turn_90 = self.navigator.turn_left_90
                     
-                self.navigator.forward_distance(speed=0.1, distance_meters=0.13)
+                self.navigator.forward_distance(speed=0.5, distance_meters=0.13)
                 time.sleep(0.5)
                 turn_90()
                 time.sleep(0.5)  # Small delay to ensure turn is completed
-                self.navigator.forward_distance(speed=0.1, distance_meters=0.15)
+                self.navigator.forward_distance(speed=0.5, distance_meters=0.15)
                 time.sleep(0.5)
                 self.inspect()
-                self.navigator.forward_distance(speed=0.1, distance_meters=0.13)
+                self.navigator.forward_distance(speed=0.5, distance_meters=0.13)
                 time.sleep(0.5)
                 turn_90()
                 time.sleep(0.5)
-                self.navigator.forward_distance(speed=0.1, distance_meters=0.15)
+                self.navigator.forward_distance(speed=0.5, distance_meters=0.15)
                 time.sleep(0.5)  # Small delay to ensure turn is completed
                 self.inspect()
         self.is_running = False
