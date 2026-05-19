@@ -107,7 +107,6 @@ class ScanController:
                 self.navigator.forward_distance(speed=0.1, distance_meters=0.15)
                 time.sleep(0.5)  # Small delay to ensure turn is completed
                 self.inspect()
-                time.sleep(0.5)
         self.is_running = False
         print("Completed scan sequence.")
 
