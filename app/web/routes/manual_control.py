@@ -41,6 +41,7 @@ class RecordVideoRequest(BaseModel):
 class EncoderTestRequest(BaseModel):
     distance: float = Field(..., gt=0)
     speed: float = Field(0.5, gt=0, le=1)
+    speed: float = Field(0.0, gt=0, le=45)
 
 router = APIRouter()
 
@@ -160,7 +161,8 @@ def test_encoder(request: Request, body: EncoderTestRequest):
     # Run the auto-run logic which uses both encoders and keeps the robot straight
     left_ticks, right_ticks = controller.navigator.forward_distance(
         speed=body.speed, 
-        distance_meters=body.distance
+        distance_meters=body.distance,
+        steer_cmd_degrees=body.steer_cmd_degrees
     )
     
     return {

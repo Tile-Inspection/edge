@@ -118,13 +118,28 @@ class Navigator:
             
         self.motion.stop()
         
-    def forward_distance(self, speed, distance_meters):
-        """Moves the robot forward a specific distance in meters."""
+    def forward_distance(self, speed, distance_meters, steer_cmd_degrees=0.0):
+        """Moves the robot forward a specific distance in meters, gradually applying a steering correction."""
+        import math
+        
         kp = 0.1
         max_angular = speed * 0.8  # Max angular velocity proportional to speed
         
         ticks_per_meter = 178.24  # This should be calibrated based on the robot's wheel and encoder
         target_ticks = distance_meters * ticks_per_meter
+        
+        # --- Steering Correction Setup ---
+        # The track width (distance between left and right wheels) in meters. 
+        # You MUST measure this on your robot and update this variable!
+        track_width_meters = 0.17  
+        
+        # Convert the steer command to radians
+        steer_radians = math.radians(steer_cmd_degrees)
+        
+        # Total difference in distance the wheels need to travel to achieve the turn
+        total_distance_diff = track_width_meters * steer_radians
+        total_tick_diff = total_distance_diff * ticks_per_meter
+        # ---------------------------------
         
         self.left_encoder.reset()
         self.right_encoder.reset()
@@ -138,10 +153,15 @@ class Navigator:
             if avg_ticks >= target_ticks:
                 break
                 
+            # Progressively apply the target tick difference based on how far we've moved
+            progress = avg_ticks / target_ticks if target_ticks > 0 else 1.0
+            current_target_diff = total_tick_diff * progress
+            
             # If left wheel has more ticks than right, the robot is veering right.
             # We want to turn left (angular < 0 in motion.py).
             # error will be negative if left > right.
-            error = left_ticks - right_ticks
+            # We subtract the current_target_diff so the controller smoothly allows the commanded turn
+            error = (left_ticks - right_ticks) - current_target_diff
             angular_velocity = error * kp
             
             # Clamp angular velocity to prevent wild swinging
