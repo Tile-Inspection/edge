@@ -75,9 +75,10 @@ class ScanController:
         
     def start_scan_sequence(self, rows: int, cols: int):
         print(f"Starting scan sequence with {rows} rows and {cols} cols...")
-        self.inspect()
+        # For first tile
+        self.step()
         for col in range(cols):
-            for row in range(rows - 1):
+            for row in range(rows - 2):
                 if not self.is_running:
                     print("Scan sequence stopped.")
                     return
