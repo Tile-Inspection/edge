@@ -25,4 +25,25 @@ class Alignment:
         self.prev_left = best_left_line
         self.prev_right = best_right_line
         
-        error, _, _ = calculate_error(best_left_line, best_right_line, image_width=X_DIM, image_height=Y_DIM)
+        error, _, _, _, _, _ = calculate_error(best_left_line, best_right_line, image_width=X_DIM, image_height=Y_DIM)
+        return error
+        
+    def get_steer_cmd_degrees(self):
+        frame = self.camera.capture_array()
+        if frame is None:
+            return
+        
+        x, y = 1280, 960
+        
+        _, _, left_line, right_line = analyze(frame, x, y)
+        
+        best_left_line = smooth_line(self.prev_left, left_line, x, y)
+        best_right_line = smooth_line(self.prev_right, right_line, x, y)
+        
+        # Update state
+        self.prev_left = best_left_line
+        self.prev_right = best_right_line
+        
+        error, _, _, _, _, _ = calculate_error(best_left_line, best_right_line, image_width=x, image_height=y)
+        print(f'Error: get_steer_cmd_degrees: {error}')
+        return error

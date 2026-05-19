@@ -2,7 +2,7 @@
 
 
 import time
-
+import math
 
 import csv
 
@@ -120,8 +120,10 @@ class Navigator:
         
     def forward_distance(self, speed, distance_meters, steer_cmd_degrees=0.0):
         """Moves the robot forward a specific distance in meters, gradually applying a steering correction."""
-        import math
         
+        if steer_cmd_degrees == 0.0:
+            steer_cmd_degrees = self.alignment.get_steer_cmd_degrees()
+                
         kp = 0.1
         max_angular = speed * 0.8  # Max angular velocity proportional to speed
         
