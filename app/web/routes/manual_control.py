@@ -136,7 +136,7 @@ def record_classify(request: Request):
     
     # Wait for the recording to finish, then classify
     record_thread.join()
-    prediction = predict_audio(filename)
+    prediction = predict_audio(f'/home/admin/Documents/GitHub/edge/app/web/static/{filename}')
     
     return {"status": "success", "filename": filename, "prediction": prediction}
 
