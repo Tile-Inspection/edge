@@ -3,7 +3,7 @@ import csv
 
 from hardware.encoder import WheelEncoder
 from hardware.motion import Motion
-from hardware.magnetometer import Magnetometer
+from hardware.mpu6050 import MPU6050
 from movement.pid import PID
 from movement.proportional import Proportional
 
@@ -11,9 +11,9 @@ ONE_TILE_DURATION = 1.0  # seconds to move one tile at full speed, adjust as nee
 TURN_DURATION = 0.5  # seconds to turn 90 degrees at full speed, adjust as needed based on testing
 
 class Navigator:
-    def __init__(self, motion: Motion, magnetometer: Magnetometer, left_encoder: WheelEncoder, right_encoder: WheelEncoder):
+    def __init__(self, motion: Motion, mpu6050: MPU6050, left_encoder: WheelEncoder, right_encoder: WheelEncoder):
         self.motion = motion
-        self.magnetometer = magnetometer
+        self.mpu6050 = mpu6050
         self.left_encoder = left_encoder
         self.right_encoder = right_encoder
         self.turn_right_next = True  # alternate turns
@@ -40,25 +40,21 @@ class Navigator:
         self.motion.stop()
         
     def turn_right_90(self):
-        """Turns the robot right by exactly 90 degrees using the magnetometer."""
-        if not self.magnetometer or not self.magnetometer.bus:
-            print("Magnetometer not available, falling back to time-based turn.")
+        """Turns the robot right by exactly 90 degrees using the MPU6050."""
+        if not self.mpu6050 or not self.mpu6050.bus:
+            print("MPU6050 not available, falling back to time-based turn.")
             self.turn_right()
             return
             
-        start_heading = self.magnetometer.get_heading()
+        self.mpu6050.reset_heading()
         target_angle = 90.0
         
         tolerance = 2.0  # We can use a tighter tolerance now that it corrects itself
         
         pid = Proportional()
         while True:
-            current_heading = self.magnetometer.get_heading()
-            turned = (current_heading - start_heading) % 360
-            
-            # Handle backward sensor jitter wraps at the start of the turn
-            if turned > 180:
-                turned -= 360
+            current_heading = self.mpu6050.get_heading()
+            turned = abs(current_heading)
             
             error = target_angle - turned
             
@@ -77,25 +73,22 @@ class Navigator:
         self.motion.stop()
 
     def turn_left_90(self):
-        """Turns the robot left by exactly 90 degrees using the magnetometer."""
-        if not self.magnetometer or not self.magnetometer.bus:
-            print("Magnetometer not available, falling back to time-based turn.")
+        """Turns the robot left by exactly 90 degrees using the MPU6050."""
+        if not self.mpu6050 or not self.mpu6050.bus:
+            print("MPU6050 not available, falling back to time-based turn.")
             self.turn_left()
             return
             
-        start_heading = self.magnetometer.get_heading()
+        self.mpu6050.reset_heading()
         target_angle = 90.0
         
         tolerance = 2.0
         
         pid = Proportional()
         while True:
-            current_heading = self.magnetometer.get_heading()
-            turned = (start_heading - current_heading) % 360
-            
-            if turned > 180:
-                turned -= 360
-                
+            current_heading = self.mpu6050.get_heading()
+            turned = abs(current_heading)
+
             error = target_angle - turned
             if abs(error) <= tolerance:
                 break

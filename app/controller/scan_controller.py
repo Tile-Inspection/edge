@@ -3,7 +3,7 @@ import os
 import time
 
 from hardware.encoder import WheelEncoder
-from hardware.magnetometer import Magnetometer
+from hardware.mpu6050 import MPU6050
 from movement.alignment import Alignment
 from hardware.servo import SprayerServo
 from movement.pid import PID
@@ -25,10 +25,10 @@ class ScanController:
         self.sprayer = SprayerServo()
         self.camera = Camera()
         self.mic = Microphone()
-        self.magnetometer = Magnetometer()
+        self.mpu6050 = MPU6050()
         self.left_encoder = WheelEncoder(pin=13, vcc_pin=12)
         self.right_encoder = WheelEncoder(pin=5, vcc_pin=7)
-        self.navigator = Navigator(self.motion, self.magnetometer, self.left_encoder, self.right_encoder)
+        self.navigator = Navigator(self.motion, self.mpu6050, self.left_encoder, self.right_encoder)
 
         self.alignment = Alignment(self.camera)
         self.pid = PID()
