@@ -44,6 +44,6 @@ class Alignment:
         self.prev_left = best_left_line
         self.prev_right = best_right_line
         
-        error, _, _, _, _, _ = calculate_error(best_left_line, best_right_line, image_width=x, image_height=y)
-        print(f'Error: get_steer_cmd_degrees: {error}')
-        return error
+        _, _, angle_error, _, _, _ = calculate_error(best_left_line, best_right_line, image_width=x, image_height=y)
+        print(f'Error: get_steer_cmd_degrees: {angle_error}')
+        return angle_error
