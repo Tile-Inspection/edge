@@ -121,18 +121,20 @@ class Navigator:
         self.motion.stop()
         
     def forward_distance(self, speed, distance_meters, steer_cmd_degrees=0.0):
-        """Moves the robot forward a specific distance in meters, gradually applying a steering correction."""
+        """Moves the robot forward (or backward) a specific distance in meters, gradually applying a steering correction."""
         
         print(f'steer_cmd_degrees {steer_cmd_degrees}')
-        # if steer_cmd_degrees == 0.0:
-        #     print(f'Calculating steer_cmd_degrees')
-            # steer_cmd_degrees = self.alignment.get_steer_cmd_degrees() * -1
+        
+        # Determine direction based on whether speed or distance is negative
+        direction = -1 if distance_meters < 0 or speed < 0 else 1
+        actual_speed = abs(speed) * direction
+        actual_distance = abs(distance_meters)
                 
         kp = 0.1
-        max_angular = speed * 0.8  # Max angular velocity proportional to speed
+        max_angular = abs(actual_speed) * 0.8  # Max angular velocity proportional to speed
         
         ticks_per_meter = 155  # This should be calibrated based on the robot's wheel and encoder
-        target_ticks = distance_meters * ticks_per_meter
+        target_ticks = actual_distance * ticks_per_meter
         
         # --- Steering Correction Setup ---
         # The track width (distance between left and right wheels) in meters. 
@@ -168,14 +170,16 @@ class Navigator:
             # error will be negative if left > right.
             # We subtract the current_target_diff so the controller smoothly allows the commanded turn
             error = (left_ticks - right_ticks) - current_target_diff
-            angular_velocity = error * kp
+            
+            # Apply direction multiplier so backward driving reverses the angular correction correctly
+            angular_velocity = error * kp * direction
             
             # Clamp angular velocity to prevent wild swinging
             angular_velocity = max(-max_angular, min(max_angular, angular_velocity))
             
             print(f'Left: {left_ticks}; Right:{right_ticks}	{angular_velocity}')
 
-            self.motion.send_velocity(speed, angular_velocity)
+            self.motion.send_velocity(actual_speed, angular_velocity)
             
             time.sleep(0.02)
             
