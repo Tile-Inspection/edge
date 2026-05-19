@@ -43,7 +43,7 @@ class SerialCommunicator:
         """Internal loop that sends the current command every 100ms."""
         while self.running:
             self._send_current_command()
-            time.sleep(0.1)  # 10Hz = 0.1 seconds
+            time.sleep(0.01)  # 10Hz = 0.
     
     def _receive_loop(self):
         """Internal loop that reads incoming data from the serial device."""
@@ -63,7 +63,7 @@ class SerialCommunicator:
                 except Exception as e:
                     print(f"Error reading serial data: {e}")
             else:
-                time.sleep(0.01)
+                time.sleep(0.5)
                 
     def _process_payload(self, payload: str):
         """Processes a complete payload received from the serial device."""

@@ -1,4 +1,9 @@
+
+
+
 import time
+
+
 import csv
 
 from hardware.encoder import WheelEncoder
@@ -48,12 +53,12 @@ class Navigator:
             
         self.mpu6050.reset_heading()
         # Target slightly less than 90 to account for inertia/momentum coasting
-        target_angle = 88.0
+        target_angle = 80
         
-        tolerance = 1.5
+        tolerance = 2
         
         # Lower Kp for a gentler approach curve
-        pid = Proportional(kp=0.025)
+        pid = Proportional(kp=0.05)
         while True:
             current_heading = self.mpu6050.get_heading()
             turned = abs(current_heading)
@@ -66,7 +71,9 @@ class Navigator:
                 break
                 
             # Clamp max speed to reduce momentum, and min speed to prevent stalling
-            clamped_speed = max(0.2, min(0.5, abs(speed)))
+            clamped_speed = max(0.5, min(1, abs(speed)))
+
+            print(f'Error {error}; Speed {speed}')
 
             if speed > 0:
                 self.motion.turn_right(clamped_speed)
@@ -85,11 +92,11 @@ class Navigator:
             return
             
         self.mpu6050.reset_heading()
-        target_angle = 88.0
+        target_angle = 80
         
-        tolerance = 1.5
+        tolerance = 2
         
-        pid = Proportional(kp=0.025)
+        pid = Proportional(kp=0.05)
         while True:
             current_heading = self.mpu6050.get_heading()
             turned = abs(current_heading)
@@ -100,7 +107,7 @@ class Navigator:
                 
             speed = pid.compute(error)
             
-            clamped_speed = max(0.2, min(0.5, abs(speed)))
+            clamped_speed = max(0.5, min(1, abs(speed)))
 
             if speed > 0:
                 self.motion.turn_left(clamped_speed)
@@ -113,10 +120,10 @@ class Navigator:
         
     def forward_distance(self, speed, distance_meters):
         """Moves the robot forward a specific distance in meters."""
-        kp = 0.1 
+        kp = 0.1
         max_angular = speed * 0.8  # Max angular velocity proportional to speed
         
-        ticks_per_meter = 187.5  # This should be calibrated based on the robot's wheel and encoder
+        ticks_per_meter = 178.24  # This should be calibrated based on the robot's wheel and encoder
         target_ticks = distance_meters * ticks_per_meter
         
         self.left_encoder.reset()
@@ -140,6 +147,8 @@ class Navigator:
             # Clamp angular velocity to prevent wild swinging
             angular_velocity = max(-max_angular, min(max_angular, angular_velocity))
             
+            print(f'Left: {left_ticks}; Right:{right_ticks}	{angular_velocity}')
+
             self.motion.send_velocity(speed, angular_velocity)
             
             time.sleep(0.02)
