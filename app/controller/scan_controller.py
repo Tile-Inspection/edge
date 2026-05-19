@@ -77,7 +77,7 @@ class ScanController:
         print(f"Starting scan sequence with {rows} rows and {cols} cols...")
         self.inspect()
         for col in range(cols):
-            for row in range(rows):
+            for row in range(rows - 1):
                 if not self.is_running:
                     print("Scan sequence stopped.")
                     return
@@ -92,7 +92,6 @@ class ScanController:
                 self.navigator.forward_distance(speed=0.1, distance_meters=0.15)
                 time.sleep(0.5)
                 self.inspect()
-                time.sleep(0.5)
                 self.navigator.forward_distance(speed=0.1, distance_meters=0.13)
                 time.sleep(0.5)
                 self.navigator.turn_right_90()
