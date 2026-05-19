@@ -41,7 +41,7 @@ class RecordVideoRequest(BaseModel):
 class EncoderTestRequest(BaseModel):
     distance: float = Field(..., gt=0)
     speed: float = Field(0.5, gt=0, le=1)
-    steer_cmd_degrees: float = Field(0.0, gt=0, le=45)
+    steer_cmd_degrees: float = Field(0.0, ge=-45, le=45)
 
 router = APIRouter()
 
