@@ -123,7 +123,9 @@ class Navigator:
     def forward_distance(self, speed, distance_meters, steer_cmd_degrees=0.0):
         """Moves the robot forward a specific distance in meters, gradually applying a steering correction."""
         
+        print(f'steer_cmd_degrees {steer_cmd_degrees}')
         if steer_cmd_degrees == 0.0:
+            print(f'Calculating steer_cmd_degrees')
             steer_cmd_degrees = self.alignment.get_steer_cmd_degrees() * -1
                 
         kp = 0.1
