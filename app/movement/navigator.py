@@ -47,11 +47,13 @@ class Navigator:
             return
             
         self.mpu6050.reset_heading()
-        target_angle = 90.0
+        # Target slightly less than 90 to account for inertia/momentum coasting
+        target_angle = 88.0
         
-        tolerance = 2.0  # We can use a tighter tolerance now that it corrects itself
+        tolerance = 1.5
         
-        pid = Proportional()
+        # Lower Kp for a gentler approach curve
+        pid = Proportional(kp=0.025)
         while True:
             current_heading = self.mpu6050.get_heading()
             turned = abs(current_heading)
@@ -63,10 +65,13 @@ class Navigator:
             if abs(error) <= tolerance:
                 break
                 
+            # Clamp max speed to reduce momentum, and min speed to prevent stalling
+            clamped_speed = max(0.2, min(0.5, abs(speed)))
+
             if speed > 0:
-                self.motion.turn_right(speed)
+                self.motion.turn_right(clamped_speed)
             else:
-                self.motion.turn_left(-speed)
+                self.motion.turn_left(clamped_speed)
                 
             time.sleep(0.01)
             
@@ -80,11 +85,11 @@ class Navigator:
             return
             
         self.mpu6050.reset_heading()
-        target_angle = 90.0
+        target_angle = 88.0
         
-        tolerance = 2.0
+        tolerance = 1.5
         
-        pid = Proportional()
+        pid = Proportional(kp=0.025)
         while True:
             current_heading = self.mpu6050.get_heading()
             turned = abs(current_heading)
@@ -95,10 +100,12 @@ class Navigator:
                 
             speed = pid.compute(error)
             
+            clamped_speed = max(0.2, min(0.5, abs(speed)))
+
             if speed > 0:
-                self.motion.turn_left(speed)
+                self.motion.turn_left(clamped_speed)
             else:
-                self.motion.turn_right(-speed)
+                self.motion.turn_right(clamped_speed)
                 
             time.sleep(0.01)
             
