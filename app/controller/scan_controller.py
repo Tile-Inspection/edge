@@ -76,6 +76,7 @@ class ScanController:
     def start_scan_sequence(self, rows: int, cols: int):
         print(f"Starting scan sequence with {rows} rows and {cols} cols...")
         # For first tile
+        self.inspect()
         self.step()
         for col in range(cols):
             for row in range(rows - 2):
@@ -86,16 +87,22 @@ class ScanController:
                 self.step()
             # After each row, you can add logic to turn or reposition as needed
             if col < cols - 1:  # Don't turn after the last row
+                # Alternate turns: right for even columns, left for odd columns
+                if col % 2 == 0:
+                    turn_90 = self.navigator.turn_right_90
+                else:
+                    turn_90 = self.navigator.turn_left_90
+                    
                 self.navigator.forward_distance(speed=0.1, distance_meters=0.13)
                 time.sleep(0.5)
-                self.navigator.turn_right_90()
+                turn_90()
                 time.sleep(0.5)  # Small delay to ensure turn is completed
                 self.navigator.forward_distance(speed=0.1, distance_meters=0.15)
                 time.sleep(0.5)
                 self.inspect()
                 self.navigator.forward_distance(speed=0.1, distance_meters=0.13)
                 time.sleep(0.5)
-                self.navigator.turn_right_90()
+                turn_90()
                 time.sleep(0.5)
                 self.navigator.forward_distance(speed=0.1, distance_meters=0.15)
                 time.sleep(0.5)  # Small delay to ensure turn is completed
