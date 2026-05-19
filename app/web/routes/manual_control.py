@@ -126,7 +126,7 @@ def record_classify(request: Request):
     # Start recording in a background thread to prevent blocking
     record_thread = threading.Thread(
         target=scan_service.controller.mic.record,
-        kwargs={"duration": 1.0, "filename": filename}
+        kwargs={"duration": 1, "filename": filename}
     )
     record_thread.start()
     
