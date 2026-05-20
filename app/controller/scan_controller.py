@@ -1,10 +1,12 @@
 import csv
 import os
 import time
+import cv2
 
 from db.database import get_db
 from db.models import Result
 from deployment.inference import classify_live_tap
+from crack_detection.process_image_frame import predict
 
 from hardware.encoder import WheelEncoder
 from hardware.mpu6050 import MPU6050
@@ -174,6 +176,16 @@ class ScanController:
             except Exception as e:
                 print(f"Error classifying audio: {e}")
 
+        crack_classification_data = None
+        if image_path:
+            print(f"Predicting cracks for {image_path}...")
+            try:
+                frame = cv2.imread(image_path)
+                if frame is not None:
+                    crack_classification_data = predict(frame)
+            except Exception as e:
+                print(f"Error classifying cracks: {e}")
+
         # Save result to the database
         with get_db() as db:
             db_result = Result(
@@ -182,6 +194,7 @@ class ScanController:
                 y=y,
                 status="scanned",
                 hollow_classification=classification_data,
+                cracked_classification=crack_classification_data,
                 image_file_path=rel_image_path,
                 audio_file_path=rel_audio_path
             )
