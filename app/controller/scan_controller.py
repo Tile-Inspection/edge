@@ -20,6 +20,7 @@ from hardware.camera import Camera
 from hardware.microphone import Microphone
 from protocol.serial import SerialCommunicator
 from movement.navigator import Navigator
+from hardware.buttons import PhysicalButtons
 
 class ScanController:
     def __init__(self):
@@ -36,6 +37,7 @@ class ScanController:
         self.right_encoder = WheelEncoder(pin=5, vcc_pin=7)
         self.alignment = Alignment(self.camera)
         self.navigator = Navigator(self.motion, self.mpu6050, self.left_encoder, self.right_encoder, self.alignment)
+        self.physical_buttons = PhysicalButtons(pin1=16, pin2=20, pin3=21)
 
         self.pid = PID()
 
