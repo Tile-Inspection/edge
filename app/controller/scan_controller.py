@@ -85,11 +85,17 @@ class ScanController:
         - It alternates going "down" (increasing row index) and "up" (decreasing row index).
         """
         print(f"Starting scan sequence for a {rows}x{cols} grid...")
+        self.navigator.forward_distance(speed=1, distance_meters=self.tile_size+0.1)
 
         for col in range(cols):
             # Determine direction for this column (down for even cols, up for odd cols)
             is_going_down = col % 2 == 0
             row_range = range(rows) if is_going_down else range(rows - 1, -1, -1)
+            self.navigator.turn_right_90()
+            time.sleep(0.5)
+            self.navigator.forward_distance(speed=0.5, distance_meters=-0.13)
+            time.sleep(0.5)
+
 
             for row in row_range:
                 if not self.is_running:
