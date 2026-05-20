@@ -37,7 +37,7 @@ class ScanController:
         self.right_encoder = WheelEncoder(pin=5, vcc_pin=7)
         self.alignment = Alignment(self.camera)
         self.navigator = Navigator(self.motion, self.mpu6050, self.left_encoder, self.right_encoder, self.alignment)
-        self.physical_buttons = PhysicalButtons(pin1=16, pin2=20, pin3=21)
+        self.physical_buttons = PhysicalButtons(pin1=10, pin2=9, pin3=11)
 
         self.pid = PID()
 
