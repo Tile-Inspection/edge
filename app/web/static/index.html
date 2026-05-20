@@ -73,6 +73,9 @@
         <div class="section">
             <button id="record-classify-btn" onclick="recordAndClassify()">Record & Classify</button>
             <span id="prediction-result" style="margin-left: 10px; font-weight: bold;"></span>
+            <br><br>
+            <button id="detect-crack-btn" onclick="detectCrack()">Detect Crack</button>
+            <span id="crack-prediction-result" style="margin-left: 10px; font-weight: bold;"></span>
 
             <h2>Manual Control</h2>
 
@@ -558,6 +561,35 @@
                 }
             } catch (error) {
                 console.error('Error calling record-classify:', error);
+                resultSpan.innerText = "Network error occurred.";
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function detectCrack() {
+            const btn = document.getElementById('detect-crack-btn');
+            const resultSpan = document.getElementById('crack-prediction-result');
+
+            btn.disabled = true;
+            resultSpan.innerText = "Capturing and analyzing...";
+
+            try {
+                const response = await fetch('/detect-crack', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    const pred = typeof data.prediction === 'object' ? JSON.stringify(data.prediction) : data.prediction;
+                    resultSpan.innerText = `Prediction: ${pred}`;
+                } else {
+                    resultSpan.innerText = `Error: ${data.detail || 'Failed to detect crack'}`;
+                }
+            } catch (error) {
+                console.error('Error calling detect-crack:', error);
                 resultSpan.innerText = "Network error occurred.";
             } finally {
                 btn.disabled = false;
