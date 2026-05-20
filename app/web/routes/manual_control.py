@@ -12,6 +12,7 @@ from navigation.analyze import read_frame, analyze, Line
 from constants import X_DIM, Y_DIM
 
 from deployment.inference import classify_live_tap
+from crack_detection.process_image_frame import predict
 
 class ControlRequest(BaseModel):
     action: str
@@ -139,6 +140,20 @@ def record_classify(request: Request):
     prediction = predict_audio(f'/home/admin/Documents/GitHub/edge/app/web/static/{filename}')
     
     return {"status": "success", "filename": filename, "prediction": prediction}
+
+@router.post("/detect-crack")
+def detect_crack_endpoint(request: Request):
+    scan_service: ScanService = request.app.state.scan_service
+    
+    # Capture an image as a numpy array
+    image = scan_service.controller.camera.capture('analyze_image.jpg')
+    if image is None:
+        raise HTTPException(status_code=500, detail="Failed to capture image frame.")
+        
+    # Pass the frame to the crack detection function
+    result = predict(image)
+    
+    return {"status": "success", "prediction": result}
 
 @router.post("/record-video")
 def record_video_endpoint(request: Request, body: RecordVideoRequest):
