@@ -4,6 +4,7 @@ import time
 
 from db.database import get_db
 from db.models import Result
+from deployment.inference import classify_live_tap
 
 from hardware.encoder import WheelEncoder
 from hardware.mpu6050 import MPU6050
@@ -164,6 +165,15 @@ class ScanController:
         rel_image_path = f"/{os.path.basename(image_path)}" if image_path else None
         rel_audio_path = f"/{os.path.basename(audio_path)}" if audio_path else None
 
+        classification_data = None
+        if audio_path:
+            print(f"Predicting audio for {audio_path}...")
+            try:
+                prediction = classify_live_tap(audio_path)
+                classification_data = {"type": prediction}
+            except Exception as e:
+                print(f"Error classifying audio: {e}")
+
         # Save result to the database
         with get_db() as db:
             db_result = Result(
@@ -171,6 +181,7 @@ class ScanController:
                 x=x,
                 y=y,
                 status="scanned",
+                hollow_classification=classification_data,
                 image_file_path=rel_image_path,
                 audio_file_path=rel_audio_path
             )
