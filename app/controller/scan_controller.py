@@ -89,7 +89,7 @@ class ScanController:
         time.sleep(0.5)
         self.navigator.turn_right_90()
         time.sleep(0.5)
-        self.navigator.forward_distance(speed=0.5, distance_meters=-0.13)
+        self.navigator.forward_distance(speed=0.5, distance_meters=-0.10)
         time.sleep(0.5)
 
         for col in range(cols):
