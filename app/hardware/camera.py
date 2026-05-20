@@ -25,13 +25,21 @@ class Camera:
         except Exception as e:
             print("Couldn't initialize camera.")
     
-    def capture(self, filename=None):
+    def capture(self, filename=None, resize_dim=None):
         if PICAM_AVAILABLE:
             if filename is None:
                 filename = "/home/admin/Documents/GitHub/edge/app/web/static/image.jpg"
             else:
                 filename = f"/home/admin/Documents/GitHub/edge/app/web/static/{filename}"
-            self.picam2.capture_file(filename)
+            
+            if resize_dim is not None:
+                frame = self.picam2.capture_array()
+                if frame is not None:
+                    frame = cv2.resize(frame, resize_dim)
+                    # Picamera2 returns RGB, but cv2.imwrite expects BGR
+                    cv2.imwrite(filename, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+            else:
+                self.picam2.capture_file(filename)
             return filename
         else:
             print("Picamera2 not available")
@@ -80,10 +88,12 @@ class Camera:
         video_writer.release()
         print(f"Stopped video recording. Saved to {filename}")
             
-    def capture_array(self):
+    def capture_array(self, resize_dim=None):
         """Captures an image directly to memory as a numpy array."""
         if PICAM_AVAILABLE:
             frame = self.picam2.capture_array()
+            if frame is not None and resize_dim is not None:
+                frame = cv2.resize(frame, resize_dim)
             return frame
         else:
             print("Picamera2 not available")
