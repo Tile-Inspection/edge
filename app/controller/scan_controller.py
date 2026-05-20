@@ -114,11 +114,15 @@ class ScanController:
                 print(f"Transitioning from column {col} to {col + 1}...")
                 # Perform a U-turn to position for the next column.
                 # This simple U-turn moves to the side by one tile width.
+                self.navigator.forward_distance(speed=0.5, distance_meters=0.13)
+                time.sleep(0.5)
                 self.navigator.turn_right_90()
                 time.sleep(0.5)
                 self.navigator.forward_distance(speed=0.5, distance_meters=self.tile_size)
                 time.sleep(0.5)
                 self.navigator.turn_right_90()
+                time.sleep(0.5)
+                self.navigator.forward_distance(speed=0.5, distance_meters=-0.13)
                 time.sleep(0.5)
 
         self.is_running = False
