@@ -133,7 +133,7 @@ class Navigator:
         kp = 0.1
         max_angular = abs(actual_speed) * 0.8  # Max angular velocity proportional to speed
         
-        ticks_per_meter = 155  # This should be calibrated based on the robot's wheel and encoder
+        ticks_per_meter = 172.22  # This should be calibrated based on the robot's wheel and encoder
         target_ticks = actual_distance * ticks_per_meter
         
         # --- Steering Correction Setup ---
