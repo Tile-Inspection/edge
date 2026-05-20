@@ -180,9 +180,7 @@ class ScanController:
         if image_path:
             print(f"Predicting cracks for {image_path}...")
             try:
-                frame = cv2.imread(image_path)
-                if frame is not None:
-                    crack_classification_data = predict(frame)
+                crack_classification_data = predict(image_path)
             except Exception as e:
                 print(f"Error classifying cracks: {e}")
 
