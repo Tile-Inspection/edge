@@ -1,10 +1,7 @@
 import csv
 import os
 import time
-import cv2
 
-from models.crack_detector import CrackDetector
-from models.sound_classifier import SoundClassifier
 from db.database import get_db
 from db.models import Result
 
@@ -23,7 +20,7 @@ from movement.navigator import Navigator
 from hardware.buttons import PhysicalButtons
 
 class ScanController:
-    def __init__(self):
+    def __init__(self, enable_audio=False, enable_crack=False):
         self.serial_communicator = SerialCommunicator()
         
         self.motion = Motion(self.serial_communicator)
@@ -39,8 +36,17 @@ class ScanController:
         self.navigator = Navigator(self.motion, self.mpu6050, self.left_encoder, self.right_encoder, self.alignment)
         self.physical_buttons = PhysicalButtons(pin1=10, pin2=9, pin3=11)
         
-        self.sound_classifier = SoundClassifier()
-        self.crack_detector = CrackDetector()
+        if enable_audio:
+            from models.sound_classifier import SoundClassifier
+            self.sound_classifier = SoundClassifier()
+        else:
+            self.sound_classifier = None
+            
+        if enable_crack:
+            from models.crack_detector import CrackDetector
+            self.crack_detector = CrackDetector()
+        else:
+            self.crack_detector = None
 
         self.pid = PID()
 
@@ -183,10 +189,16 @@ class ScanController:
         rel_audio_path = f"/{os.path.basename(audio_path)}" if audio_path else None
 
         audio_classification_data = None
-        audio_classification_data = self.sound_classifier.predict(audio_path)
+        if self.sound_classifier:
+            audio_classification_data = self.sound_classifier.predict(audio_path)
+        else:
+            print(f"Placeholder: Audio classification is disabled. Skipping prediction for {audio_path}")
 
         crack_classification_data = None
-        crack_classification_data = self.crack_detector.predict(image_path)
+        if self.sound_classifier:
+            crack_classification_data = self.crack_detector.predict(image_path)
+        else:
+            print(f"Placeholder: Crack detection is disabled. Skipping prediction for {image_path}")
 
         # Save result to the database
         with get_db() as db:

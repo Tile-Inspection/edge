@@ -11,9 +11,6 @@ from services.scan_service import ScanService
 from navigation.analyze import read_frame, analyze, Line
 from constants import X_DIM, Y_DIM
 
-from deployment.inference import classify_live_tap
-from crack_detection.process_image_frame import predict
-
 class ControlRequest(BaseModel):
     action: str
     direction: str | None = None
@@ -112,15 +109,10 @@ def record_audio(request: Request):
     filename = scan_service.controller.mic.record(duration=1, filename="sound.wav")
     return {"filename": filename}
 
-def predict_audio(filename: str) -> str:
-    # Placeholder function for audio classification
-    print(f"Predicting audio for {filename}...")
-    pred = classify_live_tap(filename)
-    return pred
-
 @router.post("/record-classify")
 def record_classify(request: Request):
     scan_service: ScanService = request.app.state.scan_service
+    predictor = scan_service.controller.sound_classifier
     
     filename = "classify_sound.wav"
     
@@ -137,13 +129,19 @@ def record_classify(request: Request):
     
     # Wait for the recording to finish, then classify
     record_thread.join()
-    prediction = predict_audio(f'/home/admin/Documents/GitHub/edge/app/web/static/{filename}')
+    if predictor is None:
+        print("Placeholder: Audio classification is disabled. Skipping prediction.")
+        prediction = None
+    else:
+        print(f"Predicting audio for {filename}...")
+        prediction = predictor.predict(f'/home/admin/Documents/GitHub/edge/app/web/static/{filename}')
     
     return {"status": "success", "filename": filename, "prediction": prediction}
 
 @router.post("/detect-crack")
 def detect_crack_endpoint(request: Request):
     scan_service: ScanService = request.app.state.scan_service
+    predictor = scan_service.controller.crack_detector
     
     # Capture an image as a numpy array
     image = scan_service.controller.camera.capture('analyze_image.jpg')
@@ -151,7 +149,12 @@ def detect_crack_endpoint(request: Request):
         raise HTTPException(status_code=500, detail="Failed to capture image frame.")
         
     # Pass the frame to the crack detection function
-    result = predict(image)
+    if predictor is None:
+        print("Placeholder: Crack detection is disabled. Skipping prediction.")
+        result = None
+    else:
+        print(f"Predicting cracks for {image}...")
+        result = predictor.predict(image)
     
     return {"status": "success", "prediction": result}
 

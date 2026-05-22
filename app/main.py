@@ -1,3 +1,4 @@
+import argparse
 from threading import Thread
 import time
 import uvicorn
@@ -5,7 +6,12 @@ from web.app import app as web_app
 from services.scan_service import ScanService
 from controller.scan_controller import ScanController
 
-controller = ScanController()
+parser = argparse.ArgumentParser(description="Edge App")
+parser.add_argument("-audio", action="store_true", help="Enable audio classification")
+parser.add_argument("-crack", action="store_true", help="Enable crack classification")
+args, _ = parser.parse_known_args()
+
+controller = ScanController(enable_audio=args.audio, enable_crack=args.crack)
 scan_service = ScanService(controller)
 
 web_app.state.scan_service = scan_service
