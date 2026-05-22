@@ -9,9 +9,10 @@ from controller.scan_controller import ScanController
 parser = argparse.ArgumentParser(description="Edge App")
 parser.add_argument("-audio", action="store_true", help="Enable audio classification")
 parser.add_argument("-crack", action="store_true", help="Enable crack classification")
+parser.add_argument("-grout", action="store_true", help="Enable grout correction")
 args, _ = parser.parse_known_args()
 
-controller = ScanController(enable_audio=args.audio, enable_crack=args.crack)
+controller = ScanController(enable_audio=args.audio, enable_crack=args.crack, enable_grout_correction=args.grout)
 scan_service = ScanService(controller)
 
 web_app.state.scan_service = scan_service

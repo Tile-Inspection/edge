@@ -20,7 +20,7 @@ from movement.navigator import Navigator
 from hardware.buttons import PhysicalButtons
 
 class ScanController:
-    def __init__(self, enable_audio=False, enable_crack=False):
+    def __init__(self, enable_audio=False, enable_crack=False, enable_grout_correction=False):
         self.serial_communicator = SerialCommunicator()
         
         self.motion = Motion(self.serial_communicator)
@@ -33,7 +33,7 @@ class ScanController:
         self.left_encoder = WheelEncoder(pin=13, vcc_pin=12)
         self.right_encoder = WheelEncoder(pin=5, vcc_pin=7)
         self.alignment = Alignment(self.camera)
-        self.navigator = Navigator(self.motion, self.mpu6050, self.left_encoder, self.right_encoder, self.alignment)
+        self.navigator = Navigator(self.motion, self.mpu6050, self.left_encoder, self.right_encoder, self.alignment, enable_grout_correction)
         self.physical_buttons = PhysicalButtons(pin1=10, pin2=9, pin3=11)
         
         if enable_audio:
@@ -73,7 +73,13 @@ class ScanController:
         self.tile_size = tile_size
         self.is_running = True
         self.current_scan_id = scan_id
-        self.start_scan_sequence(rows, cols)
+        try:
+            self.start_scan_sequence(rows, cols)
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        finally:
+            self.stop()
+        
         # self.start_forward_path()
         print("ScanController is running...")
 
@@ -142,29 +148,6 @@ class ScanController:
 
         self.is_running = False
         print("Completed scan sequence.")
-
-    def follow_path_step(self):
-        error = self.alignment.get_error()
-        angular_velocity = 0.0
-        if error is None:
-            angular_velocity = 0.0
-        else:
-            angular_velocity = self.pid.compute(error)
-        
-        # Log the error, linear velocity and angular velocity for debugging
-        log_file = "debug_log.csv"
-        file_exists = os.path.isfile(log_file)
-        try:
-            print('trying writing to csv')
-            with open(log_file, "a", newline="") as f:
-                writer = csv.writer(f)
-                if not file_exists or os.path.getsize(log_file) == 0:
-                    writer.writerow(["timestamp", "error", "linear_velocity", "angular_velocity"])
-                writer.writerow([time.time(), error, 0.5, angular_velocity])
-        except Exception as e:
-            print(f"Error logging to CSV: {e}")
-
-        self.motion.send_velocity(0.5, angular_velocity)
         
     def inspect(self, x: int, y: int):
         if self.current_scan_id is None:

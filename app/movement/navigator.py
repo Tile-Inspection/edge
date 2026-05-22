@@ -17,12 +17,13 @@ ONE_TILE_DURATION = 1.0  # seconds to move one tile at full speed, adjust as nee
 TURN_DURATION = 0.5  # seconds to turn 90 degrees at full speed, adjust as needed based on testing
 
 class Navigator:
-    def __init__(self, motion: Motion, mpu6050: MPU6050, left_encoder: WheelEncoder, right_encoder: WheelEncoder, alignment: Alignment):
+    def __init__(self, motion: Motion, mpu6050: MPU6050, left_encoder: WheelEncoder, right_encoder: WheelEncoder, alignment: Alignment, enable_grout_correction=False):
         self.motion = motion
         self.mpu6050 = mpu6050
         self.left_encoder = left_encoder
         self.right_encoder = right_encoder
         self.alignment = alignment
+        self.enable_grout_correction = enable_grout_correction
         self.turn_right_next = True  # alternate turns
         
     def move_forward_tile(self):
@@ -123,7 +124,13 @@ class Navigator:
     def forward_distance(self, speed, distance_meters, steer_cmd_degrees=0.0):
         """Moves the robot forward (or backward) a specific distance in meters, gradually applying a steering correction."""
         
+        if self.enable_grout_correction:
+            steer_cmd_degrees = self.alignment.get_error()
+        
         print(f'steer_cmd_degrees {steer_cmd_degrees}')
+        if abs(steer_cmd_degrees) > 45:
+            print('Steer error too large. Stopping')
+            return 0, 0
         
         # Determine direction based on whether speed or distance is negative
         direction = -1 if distance_meters < 0 or speed < 0 else 1
@@ -161,9 +168,14 @@ class Navigator:
             if avg_ticks >= target_ticks:
                 break
                 
-            # Progressively apply the target tick difference based on how far we've moved
             progress = avg_ticks / target_ticks if target_ticks > 0 else 1.0
-            current_target_diff = total_tick_diff * progress
+            
+            # Perform an S-curve (lane change) to correct lateral offset without changing final heading.
+            # Ramp the heading to steer_cmd_degrees at the halfway mark, then ramp it back to 0.
+            if progress < 0.5:
+                current_target_diff = total_tick_diff * (progress / 0.5)
+            else:
+                current_target_diff = total_tick_diff * ((1.0 - progress) / 0.5)
             
             # If left wheel has more ticks than right, the robot is veering right.
             # We want to turn left (angular < 0 in motion.py).
