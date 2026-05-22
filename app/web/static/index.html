@@ -207,22 +207,10 @@
         });
 
         function handleKeyboard() {
-            const w = keysPressed['w'] || keysPressed['arrowup'];
-            const s = keysPressed['s'] || keysPressed['arrowdown'];
-            const a = keysPressed['a'] || keysPressed['arrowleft'];
-            const d = keysPressed['d'] || keysPressed['arrowright'];
             const space = keysPressed[' '];
 
             if (space) {
                 stop();
-            } else if (w) {
-                moveForward();
-            } else if (s) {
-                moveBackward();
-            } else if (a) {
-                turnLeft();
-            } else if (d) {
-                turnRight();
             }
         }
 
