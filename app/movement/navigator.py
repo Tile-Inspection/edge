@@ -139,7 +139,7 @@ class Navigator:
         actual_speed = abs(speed) * direction
         actual_distance = abs(distance_meters)
 
-        ticks_per_meter = 172.22
+        ticks_per_meter = 143.51
         target_ticks = actual_distance * ticks_per_meter
 
         track_width_meters = 0.17
