@@ -268,7 +268,9 @@ def test_vision(request: Request):
     if not os.path.exists(filename):
         raise HTTPException(status_code=404, detail="Image not found for processing")
         
+    time.sleep(0.5)
     frame = read_frame(filename, x_dim=X_DIM, y_dim=Y_DIM)
+    time.sleep(0.5)
     _, _, left_line, right_line = analyze(frame, x_dim=X_DIM, y_dim=Y_DIM)
 
     if left_line is not None:
