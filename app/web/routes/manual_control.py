@@ -125,7 +125,7 @@ def record_classify(request: Request):
     
     # Wait 300ms (0.3 seconds), then tap the solenoid while recording
     time.sleep(0.3)
-    scan_service.controller.solenoid.tap(duration=0.3)
+    scan_service.controller.solenoid.tap()
     
     # Wait for the recording to finish, then classify
     record_thread.join()
@@ -136,7 +136,7 @@ def record_classify(request: Request):
         print(f"Predicting audio for {filename}...")
         prediction = predictor.predict(f'/home/admin/Documents/GitHub/edge/app/web/static/{filename}')
     
-    return {"status": "success", "filename": filename, "prediction": prediction}
+    return {"status": "success", "filename": filename, "prediction": prediction['type']}
 
 @router.post("/detect-crack")
 def detect_crack_endpoint(request: Request):

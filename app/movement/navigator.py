@@ -150,7 +150,7 @@ class Navigator:
 
         # Calculate a very slight total bias for the wheel encoders based on the steering angle
         # For example, 10 degrees will result in a ~5-tick difference by the end of the move
-        bias_multiplier = 0.5  # Adjust this up or down to make the drift more or less aggressive
+        bias_multiplier = 0.05  # Adjust this up or down to make the drift more or less aggressive
         total_target_diff = steer_cmd_degrees * bias_multiplier
 
         # ============================
