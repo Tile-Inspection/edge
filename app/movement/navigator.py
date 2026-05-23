@@ -122,81 +122,78 @@ class Navigator:
         self.motion.stop()
         
     def forward_distance(self, speed, distance_meters, steer_cmd_degrees=0.0):
-        """Moves the robot forward (or backward) a specific distance in meters, gradually applying a steering correction."""
-        
+        """Moves robot forward a specific distance using pre-compensated steering + short feedback correction."""
+
         if self.enable_grout_correction:
             steer_cmd_degrees = self.alignment.get_error()
-        
-        print(f'steer_cmd_degrees {steer_cmd_degrees}')
+
+        print(f"steer_cmd_degrees {steer_cmd_degrees}")
+
+        # Safety clamp (prevents unstable rotations)
         if abs(steer_cmd_degrees) > 45:
-            print('Steer error too large. Stopping')
+            print("Steer error too large. Stopping")
             return 0, 0
-        
-        # Determine direction based on whether speed or distance is negative
+
+        # Direction handling
         direction = -1 if distance_meters < 0 or speed < 0 else 1
         actual_speed = abs(speed) * direction
         actual_distance = abs(distance_meters)
-                
-        kp = 0.1
-        max_angular = abs(actual_speed) * 0.8  # Max angular velocity proportional to speed
-        
-        ticks_per_meter = 172.22  # This should be calibrated based on the robot's wheel and encoder
+
+        ticks_per_meter = 172.22
         target_ticks = actual_distance * ticks_per_meter
-        
-        # --- Steering Correction Setup ---
-        # The track width (distance between left and right wheels) in meters. 
-        # You MUST measure this on your robot and update this variable!
-        track_width_meters = 0.17  
-        
-        # Convert the steer command to radians
+
+        track_width_meters = 0.17
+
+        # ============================
+        # FEEDFORWARD STEERING MODEL
+        # ============================
+
         steer_radians = math.radians(steer_cmd_degrees)
-        
-        # Total difference in distance the wheels need to travel to achieve the turn
-        total_distance_diff = track_width_meters * steer_radians
-        total_tick_diff = total_distance_diff * ticks_per_meter
-        # ---------------------------------
-        
+
+        # Convert desired heading bias into differential wheel motion
+        # (this replaces your full S-curve model)
+        base_tick_diff = track_width_meters * steer_radians * ticks_per_meter
+
+        # Optional gain tuning (VERY important for stability)
+        K_ff = 1.0  # feedforward strength
+        current_target_diff = base_tick_diff * K_ff
+
+        # ============================
+        # FEEDBACK CONTROL (simple)
+        # ============================
+
+        kp = 0.08  # slightly lower than before (since feedforward now exists)
+        max_angular = abs(actual_speed) * 0.6
+
         self.left_encoder.reset()
         self.right_encoder.reset()
-                
+
         while True:
             left_ticks = self.left_encoder.get_ticks()
             right_ticks = self.right_encoder.get_ticks()
-            
+
             avg_ticks = (left_ticks + right_ticks) / 2.0
-            
+
             if avg_ticks >= target_ticks:
                 break
-                
-            progress = avg_ticks / target_ticks if target_ticks > 0 else 1.0
-            
-            # Perform an S-curve (lane change) to correct lateral offset without changing final heading.
-            # Ramp the heading to steer_cmd_degrees at the halfway mark, then ramp it back to 0.
-            if progress < 0.5:
-                current_target_diff = total_tick_diff * (progress / 0.5)
-            else:
-                current_target_diff = total_tick_diff * ((1.0 - progress) / 0.5)
-            
-            # If left wheel has more ticks than right, the robot is veering right.
-            # We want to turn left (angular < 0 in motion.py).
-            # error will be negative if left > right.
-            # We subtract the current_target_diff so the controller smoothly allows the commanded turn
-            error = (left_ticks - right_ticks) - current_target_diff
-            
-            # Apply direction multiplier so backward driving reverses the angular correction correctly
-            angular_velocity = error * kp * direction
-            
-            # Clamp angular velocity to prevent wild swinging
+
+            # encoder imbalance error
+            encoder_error = (left_ticks - right_ticks) - current_target_diff
+
+            # direction-aware correction
+            angular_velocity = encoder_error * kp * direction
+
+            # clamp
             angular_velocity = max(-max_angular, min(max_angular, angular_velocity))
-            
-            print(f'Left: {left_ticks}; Right:{right_ticks}	{angular_velocity}')
+
+            print(f"Left: {left_ticks}; Right: {right_ticks}\t{angular_velocity}")
 
             self.motion.send_velocity(actual_speed, angular_velocity)
-            
+
             time.sleep(0.02)
-            
+
         self.motion.stop()
-        
+
         return self.left_encoder.get_ticks(), self.right_encoder.get_ticks()
         
 
