@@ -125,7 +125,7 @@ def record_classify(request: Request):
     
     # Wait 300ms (0.3 seconds), then tap the solenoid while recording
     time.sleep(0.3)
-    scan_service.controller.solenoid.tap(duration=0.3)
+    scan_service.controller.solenoid.tap()
     
     # Wait for the recording to finish, then classify
     record_thread.join()
