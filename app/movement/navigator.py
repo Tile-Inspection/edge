@@ -148,15 +148,10 @@ class Navigator:
         # FEEDFORWARD STEERING MODEL
         # ============================
 
-        steer_radians = math.radians(steer_cmd_degrees)
-
-        # Convert desired heading bias into differential wheel motion
-        # (this replaces your full S-curve model)
-        base_tick_diff = track_width_meters * steer_radians * ticks_per_meter
-
-        # Optional gain tuning (VERY important for stability)
-        K_ff = 1.0  # feedforward strength
-        current_target_diff = base_tick_diff * K_ff
+        # Calculate a very slight total bias for the wheel encoders based on the steering angle
+        # For example, 10 degrees will result in a ~5-tick difference by the end of the move
+        bias_multiplier = 0.5  # Adjust this up or down to make the drift more or less aggressive
+        total_target_diff = steer_cmd_degrees * bias_multiplier
 
         # ============================
         # FEEDBACK CONTROL (simple)
@@ -176,6 +171,10 @@ class Navigator:
 
             if avg_ticks >= target_ticks:
                 break
+
+            # Spread the target difference over the entire move for a gentle drift
+            progress = avg_ticks / target_ticks if target_ticks > 0 else 1.0
+            current_target_diff = total_target_diff * progress
 
             # encoder imbalance error
             encoder_error = (left_ticks - right_ticks) - current_target_diff
