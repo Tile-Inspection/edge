@@ -18,7 +18,7 @@ class Solenoid:
         else:
             print("RPi.GPIO not available. Solenoid functionality will be simulated.")
 
-    def tap(self, duration=0.3):
+    def tap(self, duration=0.05):
         if GPIO_AVAILABLE:
             GPIO.output(self.pin, GPIO.LOW)
             time.sleep(duration)
