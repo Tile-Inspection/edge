@@ -157,9 +157,9 @@ class Navigator:
         # Nudge the direction slightly based on the steer_cmd_degrees sign
         n_ticks = 5  # exactly n ticks to add/subtract (adjust this value as needed)
         tick_offset = 0
-        if steer_cmd_degrees > 0:
+        if steer_cmd_degrees < 0:
             tick_offset = n_ticks
-        elif steer_cmd_degrees < 0:
+        elif steer_cmd_degrees > 0:
             tick_offset = -n_ticks
 
         self.left_encoder.reset()
