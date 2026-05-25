@@ -1,2 +1,2 @@
-X_DIM = 640
-Y_DIM = 480
+X_DIM = 480
+Y_DIM = 360
