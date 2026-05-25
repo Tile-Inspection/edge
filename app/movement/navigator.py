@@ -61,8 +61,9 @@ class Navigator:
         
         tolerance = 2
         
-        # Lower Kp for a gentler approach curve
-        pid = Proportional(kp=0.015)
+        # Kp is higher because the Proportional class now normalizes the error 
+        # up to 90 degrees before applying the x^3 curve.
+        pid = Proportional(kp=2.5)
         while True:
             current_heading = self.mpu6050.get_heading()
             turned = abs(current_heading)
@@ -101,7 +102,7 @@ class Navigator:
         
         tolerance = 2
         
-        pid = Proportional(kp=0.015)
+        pid = Proportional(kp=2.5)
         while True:
             current_heading = self.mpu6050.get_heading()
             turned = abs(current_heading)
