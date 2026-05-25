@@ -25,6 +25,7 @@ class Navigator:
         self.alignment = alignment
         self.enable_grout_correction = enable_grout_correction
         self.turn_right_next = True  # alternate turns
+        self.pid = PID()  # alternate turns
         
     def move_forward_tile(self):
         """Moves the robot forward by one tile."""
@@ -124,7 +125,6 @@ class Navigator:
         
     def forward_distance(self, speed, distance_meters, steer_cmd_degrees=0.0):
         """Moves robot forward a specific distance using pre-compensated steering + short feedback correction."""
-
         if self.enable_grout_correction:
             steer_cmd_degrees = self.alignment.get_error()
 
@@ -154,15 +154,6 @@ class Navigator:
         kp = 0.08  # slightly lower than before (since feedforward now exists)
         max_angular = abs(actual_speed) * 0.8
 
-        # Nudge the direction slightly based on the steer_cmd_degrees sign
-        n_ticks = 1  # exactly n ticks to add/subtract (adjust this value as needed)
-        tick_offset = 0
-        trigger_error = 2
-        if steer_cmd_degrees < -trigger_error:
-            tick_offset = n_ticks
-        elif steer_cmd_degrees > trigger_error:
-            tick_offset = -n_ticks
-
         self.left_encoder.reset()
         self.right_encoder.reset()
 
@@ -176,13 +167,15 @@ class Navigator:
                 break
 
             # encoder imbalance error + directional nudge
-            encoder_error = (left_ticks - right_ticks) + tick_offset
+            # encoder_error = (left_ticks - right_ticks) + tick_offset
 
             # direction-aware correction
-            angular_velocity = encoder_error * kp * direction
-
-            # clamp
-            angular_velocity = max(-max_angular, min(max_angular, angular_velocity))
+            error = self.alignment.get_error()
+            angular_velocity = 0.0
+            if error is None:
+                angular_velocity = 0.0
+            else:
+                angular_velocity = self.pid.compute(error)
 
             print(f"Left: {left_ticks}; Right: {right_ticks}\t{angular_velocity}")
 
