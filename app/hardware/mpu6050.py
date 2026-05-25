@@ -63,6 +63,9 @@ class MPU6050:
         self.gyro_z_offset = z_sum / num_samples
         print(f"Gyro Z offset: {self.gyro_z_offset:.2f}")
 
+    def calibrate(self):
+        self._calibrate_gyro()
+
     def _update_loop(self):
         while self.running:
             current_time = time.time()

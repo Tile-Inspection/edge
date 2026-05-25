@@ -54,9 +54,10 @@ class Navigator:
             self.turn_right()
             return
             
+        self.mpu6050.calibrate()
         self.mpu6050.reset_heading()
         # Target slightly less than 90 to account for inertia/momentum coasting
-        target_angle = 80
+        target_angle = 63
         
         tolerance = 2
         
@@ -94,8 +95,9 @@ class Navigator:
             self.turn_left()
             return
             
+        self.mpu6050.calibrate()
         self.mpu6050.reset_heading()
-        target_angle = 80
+        target_angle = 63
         
         tolerance = 2
         
