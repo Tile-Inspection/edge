@@ -143,16 +143,9 @@ class Navigator:
         ticks_per_meter = 143.51
         target_ticks = actual_distance * ticks_per_meter
 
-        track_width_meters = 0.17
-
         # ============================
         # FEEDFORWARD STEERING MODEL
         # ============================
-
-        # Calculate a very slight total bias for the wheel encoders based on the steering angle
-        # For example, 10 degrees will result in a ~5-tick difference by the end of the move
-        bias_multiplier = 0.05  # Adjust this up or down to make the drift more or less aggressive
-        total_target_diff = steer_cmd_degrees * bias_multiplier
 
         # ============================
         # FEEDBACK CONTROL (simple)
@@ -160,6 +153,14 @@ class Navigator:
 
         kp = 0.08  # slightly lower than before (since feedforward now exists)
         max_angular = abs(actual_speed) * 0.6
+
+        # Nudge the direction slightly based on the steer_cmd_degrees sign
+        n_ticks = 5  # exactly n ticks to add/subtract (adjust this value as needed)
+        tick_offset = 0
+        if steer_cmd_degrees > 0:
+            tick_offset = n_ticks
+        elif steer_cmd_degrees < 0:
+            tick_offset = -n_ticks
 
         self.left_encoder.reset()
         self.right_encoder.reset()
@@ -173,12 +174,8 @@ class Navigator:
             if avg_ticks >= target_ticks:
                 break
 
-            # Spread the target difference over the entire move for a gentle drift
-            progress = avg_ticks / target_ticks if target_ticks > 0 else 1.0
-            current_target_diff = total_target_diff * progress
-
-            # encoder imbalance error
-            encoder_error = (left_ticks - right_ticks) - current_target_diff
+            # encoder imbalance error + directional nudge
+            encoder_error = (left_ticks - right_ticks) + tick_offset
 
             # direction-aware correction
             angular_velocity = encoder_error * kp * direction
