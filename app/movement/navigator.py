@@ -152,7 +152,7 @@ class Navigator:
         # ============================
 
         kp = 0.08  # slightly lower than before (since feedforward now exists)
-        max_angular = abs(actual_speed) * 0.6
+        max_angular = abs(actual_speed) * 0.8
 
         # Nudge the direction slightly based on the steer_cmd_degrees sign
         n_ticks = 5  # exactly n ticks to add/subtract (adjust this value as needed)
