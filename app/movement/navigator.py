@@ -1,41 +1,66 @@
 import time
 from hardware.motion import Motion
 from movement.alignment import Alignment
-from movement.pid import PID
+from movement.proportional import Proportional
 
 ONE_TILE_DURATION = 1.0  # seconds to move one tile at full speed
 TURN_DURATION = 0.5  # seconds to turn 90 degrees at full speed
 
 class Navigator:
-    def __init__(self, motion: Motion, alignment: Alignment, pid: PID):
+    def __init__(self, motion: Motion, alignment: Alignment, proportional: Proportional, 
+                 left_encoder=None, right_encoder=None, mpu=None):
         self.motion = motion
         self.alignment = alignment
-        self.pid = pid
-        self.turn_right_next = True 
+        self.proportional = proportional
+        
+        # Kept strictly for standalone API testing & fallback
+        self.left_encoder = left_encoder
+        self.right_encoder = right_encoder
+        self.mpu = mpu
         
     def move_forward_tile(self):
         """Moves forward one tile while actively correcting drift using camera vision."""
         speed = 0.5
         target_duration = ONE_TILE_DURATION * speed
-        
-        # Reset PID integral and error to prevent windup from previous tile
-        self.pid.integral = 0
-        self.pid.prev_error = 0
 
         start_time = time.time()
         while (time.time() - start_time) < target_duration:
             error = self.alignment.get_error()
             
-            # If line is lost momentarily, drive straight. Otherwise, apply correction.
+            # If line is lost momentarily, drive straight. Otherwise, apply proportional correction.
             if error is None:
                 angular_velocity = 0.0
             else:
-                angular_velocity = self.pid.compute(error)
+                angular_velocity = self.proportional.compute(error)
                 
             self.motion.send_velocity(speed, angular_velocity)
-            time.sleep(0.05)  # Restrict loop to ~20Hz to match camera frame processing
+            time.sleep(0.05)  # Restrict loop to ~20Hz to match camera processing
             
         self.motion.stop()
+
+    def forward_distance(self, speed, distance_meters, steer_cmd_degrees=0.0):
+        """
+        Preserved hardware-based movement strictly for battery_test.py 
+        and manual_control.py /test-encoder endpoints.
+        """
+        if self.left_encoder: self.left_encoder.reset()
+        if self.right_encoder: self.right_encoder.reset()
+
+        # Naive time fallback to support distance tracking (Adjust to your wheel diameter spec)
+        duration = distance_meters / (speed * 0.5) if speed > 0 else 0
+        start_time = time.time()
+        
+        while (time.time() - start_time) < duration:
+            # Blind forward tracking based on test steer command
+            self.motion.send_velocity(speed, steer_cmd_degrees / 90.0)
+            time.sleep(0.1)
+            
+        self.motion.stop()
+        
+        l_ticks = self.left_encoder.get_ticks() if self.left_encoder else 0
+        r_ticks = self.right_encoder.get_ticks() if self.right_encoder else 0
+        
+        return l_ticks, r_ticks
 
     def turn_right(self):
         speed = 0.5
@@ -49,7 +74,6 @@ class Navigator:
         time.sleep(TURN_DURATION * speed)
         self.motion.stop()
         
-    # Time-based fallbacks for the API endpoints since the magnetometer is removed
     def turn_right_90(self):
         self.turn_right()
 
