@@ -5,7 +5,8 @@ class Proportional:
         self.integral = 0
 
     def compute(self, error):
-        angular_velocity = self.kp * error
+        # x^3 interpolation for a smoother approach curve
+        angular_velocity = self.kp * (error ** 3)
 
         angular_velocity = max(-1, min(1, angular_velocity))
         
