@@ -10,7 +10,6 @@ from movement.alignment import Alignment
 from hardware.encoder import WheelEncoder
 from hardware.motion import Motion
 from hardware.mpu6050 import MPU6050
-from movement.pid import PID
 from movement.proportional import Proportional
 
 ONE_TILE_DURATION = 1.0  # seconds to move one tile at full speed, adjust as needed based on testing
