@@ -25,7 +25,6 @@ class Navigator:
         self.alignment = alignment
         self.enable_grout_correction = enable_grout_correction
         self.turn_right_next = True  # alternate turns
-        self.pid = PID()  # alternate turns
         
     def move_forward_tile(self):
         """Moves the robot forward by one tile."""
@@ -125,15 +124,6 @@ class Navigator:
         
     def forward_distance(self, speed, distance_meters, steer_cmd_degrees=0.0):
         """Moves robot forward a specific distance using pre-compensated steering + short feedback correction."""
-        if self.enable_grout_correction:
-            steer_cmd_degrees = self.alignment.get_error()
-
-        print(f"steer_cmd_degrees {steer_cmd_degrees}")
-
-        # Safety clamp (prevents unstable rotations)
-        if abs(steer_cmd_degrees) > 45:
-            print("Steer error too large. Stopping")
-            return 0, 0
 
         # Direction handling
         direction = -1 if distance_meters < 0 or speed < 0 else 1
@@ -144,18 +134,17 @@ class Navigator:
         target_ticks = actual_distance * ticks_per_meter
 
         # ============================
-        # FEEDFORWARD STEERING MODEL
+        # PD FEEDBACK CONTROL
         # ============================
 
-        # ============================
-        # FEEDBACK CONTROL (simple)
-        # ============================
-
-        kp = 0.08  # slightly lower than before (since feedforward now exists)
+        kp = 0.015  # Tuned for degree error scale instead of encoder ticks
+        kd = 0.005  # Derivative gain to prevent oscillation
         max_angular = abs(actual_speed) * 0.8
 
         self.left_encoder.reset()
         self.right_encoder.reset()
+
+        prev_error = 0.0
 
         while True:
             left_ticks = self.left_encoder.get_ticks()
@@ -166,22 +155,39 @@ class Navigator:
             if avg_ticks >= target_ticks:
                 break
 
-            # encoder imbalance error + directional nudge
-            # encoder_error = (left_ticks - right_ticks) + tick_offset
-
-            # direction-aware correction
-            error = self.alignment.get_error()
-            angular_velocity = 0.0
-            if error is None:
-                angular_velocity = 0.0
+            # Fetch dynamic steering error
+            current_error = 0.0
+            if self.enable_grout_correction:
+                err = self.alignment.get_error()
+                if err is not None:
+                    current_error = err
             else:
-                angular_velocity = self.pid.compute(error)
+                current_error = steer_cmd_degrees  # Fallback to static command
+                
+            # Safety check - stop if completely lost (error > 45)
+            if abs(current_error) > 45:
+                print("Steer error too large. Stopping.")
+                break
+                
+            # Deadband for noisy perfectly-aligned state (fluctuates between 0 and 2)
+            if abs(current_error) <= 2.0:
+                current_error = 0.0
 
-            print(f"Left: {left_ticks}; Right: {right_ticks}\t{angular_velocity}")
+            # PD Controller calculation
+            derivative = current_error - prev_error
+            angular_velocity = (current_error * kp + derivative * kd) * direction
+            prev_error = current_error
+
+            # clamp
+            angular_velocity = max(-max_angular, min(max_angular, angular_velocity))
+
+            print(f"Left: {left_ticks}; Right: {right_ticks}\tError: {current_error:.2f}\tAngVel: {angular_velocity:.3f}")
 
             self.motion.send_velocity(actual_speed, angular_velocity)
 
-            time.sleep(0.02)
+            # Avoid pegging CPU if we aren't querying the camera dynamically
+            if not self.enable_grout_correction:
+                time.sleep(0.02)
 
         self.motion.stop()
 
