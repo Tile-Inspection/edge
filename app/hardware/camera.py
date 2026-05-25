@@ -15,7 +15,7 @@ class Camera:
         try:
             if PICAM_AVAILABLE:
                 self.picam2 = Picamera2()
-                config = self.picam2.create_still_configuration()
+                config = self.picam2.create_still_configuration(main={"size": (X_DIM, Y_DIM)})
                 self.picam2.configure(config)
                 self.picam2.start()
                 time.sleep(2)
