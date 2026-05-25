@@ -56,7 +56,7 @@ class Navigator:
             
         self.mpu6050.reset_heading()
         # Target slightly less than 90 to account for inertia/momentum coasting
-        target_angle = 80
+        target_angle = 78
         
         tolerance = 1
         
