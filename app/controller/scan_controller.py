@@ -59,7 +59,6 @@ class ScanController:
         self.is_running = True
         print(f"ScanController is running... Scan ID: {scan_id}")
         
-        # Depending on your grid logic, loop through rows/cols here
         while self.is_running:
             self.step()
 
@@ -85,7 +84,13 @@ class ScanController:
         image = self.camera.capture()
 
         print(f"Processing {audio}, {image}")
+        
         if self.sound_classifier:
             self.sound_classifier.predict(audio)
+            
         if self.crack_detector:
             self.crack_detector.predict(image)
+            
+        # Post-tap delay: Holds the robot still before the next movement starts
+        print("Inspection complete. Delaying before proceeding to the next tile...")
+        time.sleep(1.5)  # Adjust this value (in seconds) to tune your desired delay

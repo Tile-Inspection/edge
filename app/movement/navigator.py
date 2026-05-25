@@ -18,22 +18,42 @@ class Navigator:
         self.right_encoder = right_encoder
         self.mpu = mpu
         
-    def move_forward_tile(self):
-        """Moves forward one tile while actively correcting drift using camera vision."""
-        speed = 0.5
-        target_duration = ONE_TILE_DURATION * speed
+    def move_forward_tile(self, target_speed=0.5):
+        """Moves forward one tile with gradual acceleration and active vision drift correction."""
+        
+        # Calculate base time needed. e.g., 1.0 duration / 0.5 speed = 2.0 seconds
+        base_duration = ONE_TILE_DURATION / target_speed
+        
+        # Ramp-up parameters to smoothly start the motors
+        ramp_duration = 0.75  # seconds to reach full target_speed
+        
+        # Add half the ramp duration to the total target duration to compensate 
+        # for the lost distance while accelerating
+        target_duration = base_duration + (ramp_duration / 2.0)
 
         start_time = time.time()
-        while (time.time() - start_time) < target_duration:
+        
+        while True:
+            elapsed = time.time() - start_time
+            if elapsed >= target_duration:
+                break
+                
+            # 1. Gradual speed calculation (Ramp up)
+            if elapsed < ramp_duration:
+                current_speed = target_speed * (elapsed / ramp_duration)
+            else:
+                current_speed = target_speed
+
+            # 2. Vision Correction
             error = self.alignment.get_error()
             
-            # If line is lost momentarily, drive straight. Otherwise, apply proportional correction.
             if error is None:
                 angular_velocity = 0.0
             else:
                 angular_velocity = self.proportional.compute(error)
                 
-            self.motion.send_velocity(speed, angular_velocity)
+            # 3. Apply movement
+            self.motion.send_velocity(current_speed, angular_velocity)
             time.sleep(0.05)  # Restrict loop to ~20Hz to match camera processing
             
         self.motion.stop()
