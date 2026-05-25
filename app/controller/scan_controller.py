@@ -111,7 +111,9 @@ class ScanController:
             # Determine direction for this column (down for even cols, up for odd cols)
             is_going_down = col % 2 == 0
             row_range = range(rows) if is_going_down else range(rows - 1, -1, -1)
-
+            
+            print(row_range)
+            
             for row in row_range:
                 if not self.is_running:
                     print("Scan sequence stopped.")
@@ -137,7 +139,20 @@ class ScanController:
                 # This simple U-turn moves to the side by one tile width.
                 self.navigator.forward_distance(speed=0.5, distance_meters=0.10)
                 time.sleep(0.5)
-                self.navigator.turn_right_90()
+                
+                if is_going_down:
+                    self.navigator.turn_left_90()
+                    time.sleep(0.5)
+                    self.navigator.forward_distance(speed=0.5, distance_meters=self.tile_size - 0.05)
+                    time.sleep(0.5)
+                    self.navigator.turn_left_90()
+                else:
+                    self.navigator.turn_right_90()
+                    time.sleep(0.5)
+                    self.navigator.forward_distance(speed=0.5, distance_meters=self.tile_size - 0.05)
+                    time.sleep(0.5)
+                    self.navigator.turn_right_90()
+
                 time.sleep(0.5)
                 self.navigator.forward_distance(speed=0.5, distance_meters=self.tile_size - 0.05)
                 time.sleep(0.5)
