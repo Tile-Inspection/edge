@@ -120,6 +120,16 @@
         </div>
 
         <div class="section">
+            <h2>Live Error Stream</h2>
+
+            <button onclick="startLiveError()">Start Live Error</button>
+            <button onclick="stopLiveError()">Stop Live Error</button>
+
+            <p>Status: <strong id="error-status">stopped</strong></p>
+            <p>Current Error Value: <strong id="error-value">N/A</strong></p>
+        </div>
+
+        <div class="section">
             <h2>Direct Velocity Control</h2>
             <div>
                 <label>Linear Velocity (m/s):</label><br>
@@ -604,6 +614,62 @@
             } catch (error) {
                 statusMessage.textContent = 'Error triggering calibration.';
                 console.error('Error:', error);
+            }
+        }
+
+        let errorPollInterval = null;
+
+        async function startLiveError() {
+            try {
+                const response = await fetch('/start-live-error', { method: 'POST' });
+                const result = await response.json();
+                console.log(result.message);
+
+                // Start polling for the error value at 5 FPS (every 200ms) to match backend
+                if (!errorPollInterval) {
+                    errorPollInterval = setInterval(pollErrorValue, 200);
+                }
+            } catch (err) {
+                console.error("Failed to start live error:", err);
+            }
+        }
+
+        async function stopLiveError() {
+            try {
+                const response = await fetch('/stop-live-error', { method: 'POST' });
+                const result = await response.json();
+                console.log(result.message);
+
+                // Stop frontend polling
+                if (errorPollInterval) {
+                    clearInterval(errorPollInterval);
+                    errorPollInterval = null;
+                }
+
+                document.getElementById('error-status').innerText = 'stopped';
+                document.getElementById('error-value').innerText = 'N/A';
+            } catch (err) {
+                console.error("Failed to stop live error:", err);
+            }
+        }
+
+        async function pollErrorValue() {
+            try {
+                const response = await fetch('/live-error');
+                const data = await response.json();
+
+                document.getElementById('error-status').innerText = data.status;
+
+                // Format and display the returned error value
+                if (data.error !== null) {
+                    document.getElementById('error-value').innerText =
+                        typeof data.error === 'object' ? JSON.stringify(data.error) : data.error;
+                } else {
+                    document.getElementById('error-value').innerText = 'None';
+                }
+
+            } catch (err) {
+                console.error("Failed to fetch live error data:", err);
             }
         }
 

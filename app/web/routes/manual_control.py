@@ -41,6 +41,10 @@ class EncoderTestRequest(BaseModel):
     speed: float = Field(0.5, gt=0, le=1)
     steer_cmd_degrees: float = Field(0.0, ge=-45, le=45)
 
+live_error_running = False
+live_error_data = {"error": None, "status": "stopped"}
+live_error_thread = None
+
 router = APIRouter()
 
 @router.post("/control")
@@ -312,3 +316,41 @@ def calibrate_mpu6050(request: Request):
     cal_thread.start()
     
     return {"status": "success", "message": "Started MPU6050 gyroscope calibration. Ensure the robot is still."}
+
+def _live_error_task(scan_service: ScanService):
+    global live_error_running, live_error_data
+    alignment = scan_service.controller.alignment
+    
+    while live_error_running:
+        try:
+            # Call get_error() to calculate the error from the camera frame
+            error_val = alignment.get_error()
+            live_error_data["error"] = error_val
+        except Exception as e:
+            live_error_data["error"] = str(e)
+        
+        time.sleep(0.2)  # 5 FPS (1/5 second)
+
+@router.post("/start-live-error")
+def start_live_error(request: Request):
+    global live_error_running, live_error_thread, live_error_data
+    if not live_error_running:
+        live_error_running = True
+        live_error_data["status"] = "running"
+        scan_service: ScanService = request.app.state.scan_service
+        live_error_thread = threading.Thread(target=_live_error_task, args=(scan_service,), daemon=True)
+        live_error_thread.start()
+        return {"status": "success", "message": "Live error stream started"}
+    return {"status": "success", "message": "Already running"}
+
+@router.post("/stop-live-error")
+def stop_live_error():
+    global live_error_running, live_error_data
+    live_error_running = False
+    live_error_data["status"] = "stopped"
+    return {"status": "success", "message": "Live error stream stopped"}
+
+@router.get("/live-error")
+def get_live_error():
+    global live_error_data
+    return live_error_data
