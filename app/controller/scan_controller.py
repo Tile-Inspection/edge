@@ -9,7 +9,6 @@ from hardware.encoder import WheelEncoder
 from hardware.mpu6050 import MPU6050
 from movement.alignment import Alignment
 from hardware.servo import SprayerServo
-from movement.pid import PID
 from hardware.motion import Motion
 from hardware.sensors import Sensors
 from hardware.solenoid import Solenoid
