@@ -159,7 +159,7 @@ class Navigator:
             if self.enable_grout_correction:
                 err = self.alignment.get_error()
                 if err is not None:
-                    current_error = err
+                    current_error = -err
             else:
                 current_error = steer_cmd_degrees  # Fallback to static command
                 
