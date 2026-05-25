@@ -129,7 +129,7 @@ class ScanController:
                 if not is_last_tile_in_col:
                     # Move to next tile in the same column
                     print(f"Moving to next tile in column {col}...")
-                    self.navigator.forward_distance(speed=0.6, distance_meters=self.tile_size)
+                    self.navigator.forward_distance(speed=0.4, distance_meters=self.tile_size)
                     time.sleep(0.5)
 
             # After a column is finished, transition to the next one if it's not the last column
@@ -137,24 +137,24 @@ class ScanController:
                 print(f"Transitioning from column {col} to {col + 1}...")
                 # Perform a U-turn to position for the next column.
                 # This simple U-turn moves to the side by one tile width.
-                self.navigator.forward_distance(speed=0.5, distance_meters=0.10)
+                self.navigator.forward_distance(speed=0.3, distance_meters=0.10)
                 time.sleep(0.5)
                 
                 if is_going_down:
                     self.navigator.turn_right_90()
                     time.sleep(0.5)
-                    self.navigator.forward_distance(speed=0.5, distance_meters=self.tile_size - 0.05)
+                    self.navigator.forward_distance(speed=0.3, distance_meters=self.tile_size - 0.05)
                     time.sleep(0.5)
                     self.navigator.turn_right_90()
                 else:
                     self.navigator.turn_left_90()
                     time.sleep(0.5)
-                    self.navigator.forward_distance(speed=0.5, distance_meters=self.tile_size - 0.05)
+                    self.navigator.forward_distance(speed=0.3, distance_meters=self.tile_size - 0.05)
                     time.sleep(0.5)
                     self.navigator.turn_left_90()
 
                 time.sleep(0.5)
-                self.navigator.forward_distance(speed=0.5, distance_meters=-0.13)
+                self.navigator.forward_distance(speed=0.3, distance_meters=-0.13)
                 time.sleep(0.5)
 
         self.is_running = False
