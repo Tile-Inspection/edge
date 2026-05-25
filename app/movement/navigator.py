@@ -57,12 +57,12 @@ class Navigator:
         self.mpu6050.calibrate()
         self.mpu6050.reset_heading()
         # Target slightly less than 90 to account for inertia/momentum coasting
-        target_angle = 63
+        target_angle = 78
         
         tolerance = 2
         
         # Lower Kp for a gentler approach curve
-        pid = Proportional(kp=0.05)
+        pid = Proportional(kp=0.015)
         while True:
             current_heading = self.mpu6050.get_heading()
             turned = abs(current_heading)
@@ -75,7 +75,7 @@ class Navigator:
                 break
                 
             # Clamp max speed to reduce momentum, and min speed to prevent stalling
-            clamped_speed = max(0.5, min(1, abs(speed)))
+            clamped_speed = max(0.3, min(1, abs(speed)))
 
             print(f'Error {error}; Speed {speed}')
 
@@ -97,11 +97,11 @@ class Navigator:
             
         self.mpu6050.calibrate()
         self.mpu6050.reset_heading()
-        target_angle = 63
+        target_angle = 78
         
         tolerance = 2
         
-        pid = Proportional(kp=0.05)
+        pid = Proportional(kp=0.015)
         while True:
             current_heading = self.mpu6050.get_heading()
             turned = abs(current_heading)
@@ -112,7 +112,7 @@ class Navigator:
                 
             speed = pid.compute(error)
             
-            clamped_speed = max(0.5, min(1, abs(speed)))
+            clamped_speed = max(0.3, min(1, abs(speed)))
 
             if speed > 0:
                 self.motion.turn_left(clamped_speed)
