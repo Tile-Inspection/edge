@@ -155,11 +155,12 @@ class Navigator:
         max_angular = abs(actual_speed) * 0.8
 
         # Nudge the direction slightly based on the steer_cmd_degrees sign
-        n_ticks = 5  # exactly n ticks to add/subtract (adjust this value as needed)
+        n_ticks = 3  # exactly n ticks to add/subtract (adjust this value as needed)
         tick_offset = 0
-        if steer_cmd_degrees < 0:
+        trigger_error = 2
+        if steer_cmd_degrees < -trigger_error:
             tick_offset = n_ticks
-        elif steer_cmd_degrees > 0:
+        elif steer_cmd_degrees > trigger_error:
             tick_offset = -n_ticks
 
         self.left_encoder.reset()
