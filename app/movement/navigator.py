@@ -56,9 +56,9 @@ class Navigator:
             
         self.mpu6050.reset_heading()
         # Target slightly less than 90 to account for inertia/momentum coasting
-        target_angle = 78
+        target_angle = 80
         
-        tolerance = 2
+        tolerance = 1
         
         # Kp is higher because the Proportional class now normalizes the error 
         # up to 90 degrees before applying the x^3 curve.
@@ -75,7 +75,7 @@ class Navigator:
                 break
                 
             # Clamp max speed to reduce momentum, and min speed to prevent stalling
-            clamped_speed = max(0.3, min(1, abs(speed)))
+            clamped_speed = max(0.2, min(1, abs(speed)))
 
             print(f'Error {error}; Speed {speed}')
 
@@ -96,9 +96,9 @@ class Navigator:
             return
             
         self.mpu6050.reset_heading()
-        target_angle = 78
+        target_angle = 81
         
-        tolerance = 2
+        tolerance = 1
         
         pid = Proportional(kp=2.5)
         while True:
@@ -111,7 +111,7 @@ class Navigator:
                 
             speed = pid.compute(error)
             
-            clamped_speed = max(0.3, min(1, abs(speed)))
+            clamped_speed = max(0.2, min(1, abs(speed)))
 
             if speed > 0:
                 self.motion.turn_left(clamped_speed)
