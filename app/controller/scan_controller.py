@@ -127,7 +127,7 @@ class ScanController:
                 if not is_last_tile_in_col:
                     # Move to next tile in the same column
                     print(f"Moving to next tile in column {col}...")
-                    self.navigator.forward_distance(speed=1, distance_meters=self.tile_size)
+                    self.navigator.forward_distance(speed=0.8, distance_meters=self.tile_size)
                     time.sleep(0.5)
 
             # After a column is finished, transition to the next one if it's not the last column
