@@ -155,7 +155,7 @@ class Navigator:
         max_angular = abs(actual_speed) * 0.8
 
         # Nudge the direction slightly based on the steer_cmd_degrees sign
-        n_ticks = 3  # exactly n ticks to add/subtract (adjust this value as needed)
+        n_ticks = 1  # exactly n ticks to add/subtract (adjust this value as needed)
         tick_offset = 0
         trigger_error = 2
         if steer_cmd_degrees < -trigger_error:
